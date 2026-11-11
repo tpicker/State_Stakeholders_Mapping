@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Assess sixteen decision factors for your assigned U.S. state, explore a live risk heat map, and print or save this assessment as a PDF.">
+  <meta name="theme-color" content="#12385f">
+  <title>AI Facility Risk Analysis — U.S. State</title>
+  <style>
+
+:root{--navy:#12385f;--ink:#17324d;--text:#263f54;--muted:#526b80;--border:#d6e0e8;--paper:#f3f6f9;--soft:#edf4fa;--teal:#006d8f;--input:#fff;--focus:#1d83cf;color-scheme:light;font-family:Arial,Helvetica,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);font-family:Arial,Helvetica,sans-serif;color:var(--ink);font-size:15px;line-height:1.5}
+button,input,select,textarea{font:inherit}
+button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
+button{cursor:pointer;color:inherit;touch-action:manipulation}
+button:disabled{cursor:not-allowed;opacity:.55}
+a{color:#125b87;text-underline-offset:3px}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+h1,h2,h3,p{overflow-wrap:anywhere}
+h2,h3{line-height:1.3}
+h2{color:var(--navy);font-size:20px;font-weight:700;margin:0}
+h3{color:var(--navy)}
+[hidden]{display:none!important}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip-link{position:fixed;top:-100px;left:16px;background:#fff;padding:12px;border-radius:8px;z-index:20}
+.skip-link:focus{top:12px}
+.page-shell{max-width:1180px;margin:auto;padding:22px 20px 30px}
+.intro{background:var(--navy);color:#fff;border-radius:14px;padding:27px 30px;display:flex;align-items:center;justify-content:space-between;gap:30px}
+.eyebrow{font-size:11px;letter-spacing:.12em;font-weight:700;margin:0 0 7px;color:var(--muted)}
+.intro .eyebrow{color:#b9d8ee}
+h1{font-size:clamp(26px,3vw,34px);font-weight:700;line-height:1.2;margin:0 0 10px;color:#fff;letter-spacing:0}
+.intro-copy{max-width:800px;font-size:15px;line-height:1.6;margin:0;color:#dfebf5}
+.hero-count{flex:none;min-width:110px;text-align:center;border-left:1px solid #ffffff35;padding-left:28px}
+.hero-count strong{display:block;font-size:48px;line-height:1.1}
+.hero-count span{font-size:13px;color:#dceaf5}
+.resource-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:18px 0 12px}
+.session-note{color:var(--muted);font-size:12px;margin:0;line-height:1.6}
+.header-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.text-button,.quiet-button{border:0;background:transparent;padding:6px 0;font-size:13px;font-weight:700;color:#125b87;text-decoration:underline;text-underline-offset:3px}
+.text-button:hover,.quiet-button:hover{color:var(--navy)}
+.text-button span{margin-left:5px}
+.help-icon{display:inline-grid;place-items:center;border:1px solid currentColor;width:16px;height:16px;border-radius:50%;font-size:10px;margin-right:5px}
+.outline-button,.primary-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:9px 14px;border:1px solid #b9c7d4;border-radius:8px;background:#fff;color:var(--ink);font-size:13px;font-weight:700;text-decoration:none;line-height:1.4}
+.outline-button:hover{background:#e9f1f7}
+.primary-button{background:var(--navy);border-color:var(--navy);color:#fff}
+.primary-button:hover{background:#1b4c7c}
+.header-actions .text-button{padding:9px 12px;min-height:42px;border:1px solid #b9c7d4;border-radius:8px;background:#fff;text-decoration:none;color:var(--ink);font-size:12px}
+.header-actions .text-button:hover{background:#e9f1f7}
+.workspace-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 18px}
+.location-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.location-tab{display:flex;align-items:center;justify-content:center;gap:8px;min-height:43px;border:1px solid #b9c7d4;border-radius:8px;padding:10px 14px;background:#fff;color:var(--ink);font-size:13px;font-weight:700}
+.location-tab:hover{background:#e9f1f7}
+.location-tab.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.location-tab>span:first-child{font-size:16px}
+.tab-count{font-size:11px;line-height:1.4;padding:3px 6px;border-radius:4px;background:#edf4fa;color:#526b80;font-weight:400}
+.active .tab-count{background:#ffffff20;color:#fff}
+.workspace-actions{display:flex;gap:12px;align-items:center}
+.workspace-actions .outline-button{background:var(--navy);border-color:var(--navy);color:#fff}
+.workspace-actions .outline-button:hover{background:#1b4c7c}
+.print-scope{font-size:11px;color:var(--muted)}
+.assessment-overview{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.15fr;gap:11px;margin:0 0 20px}
+.location-field,.metric{min-width:0;padding:17px 16px;background:#fff;border:1px solid var(--border);border-radius:12px}
+.overview-divider{display:none}
+.location-field label,.metric>span{display:block;color:#456176;font-size:12px;font-weight:700;margin-bottom:8px}
+.location-field select{width:100%;min-width:0;padding:9px 10px;height:43px;background:#fff;color:var(--ink);border:1px solid #aebfce;border-radius:7px;font-size:16px}
+
+.metric>strong{display:block;font-size:28px;line-height:1.3;font-weight:700;color:var(--navy)}
+.metric b{font-weight:700}
+.metric strong small{font-size:14px;font-weight:400;color:var(--muted)}
+.metric>small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.progress-track{height:5px;background:#e6edf3;border-radius:5px;margin-top:12px;max-width:150px;overflow:hidden}
+.progress-track div{height:100%;width:0;background:#006d8f}
+.workspace-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+.assessment-panel{min-width:0;scroll-margin-top:20px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px}
+.section-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:17px}
+.section-heading .eyebrow{font-size:10px;margin-bottom:5px}
+.input-key{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--muted);white-space:nowrap}
+.input-key i{width:10px;height:10px;background:#e9f5fa;border:1px solid #8eb8cb;border-radius:2px}
+.category-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:5px;border-radius:9px;background:#eff4f8}
+.category-tab{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:42px;padding:9px 5px;border:1px solid transparent;border-radius:7px;background:transparent;color:#526b80;font-size:11px;font-weight:700;line-height:1.4}
+.category-tab[aria-pressed=true]{background:#fff;color:var(--navy);border-color:#c6d6e4;box-shadow:0 1px 3px #17324d0b}
+.category-tab:hover{background:#e4edf5}
+.category-tab .category-dot{width:6px;height:6px;border-radius:50%;flex:none}
+.category-description{display:flex;justify-content:space-between;align-items:start;gap:12px;padding:14px 1px 17px;color:var(--muted);font-size:11px;line-height:1.6}
+.category-description span:last-child{white-space:nowrap;font-weight:700}
+#factor-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.factor-card{min-width:0;background:#f8fbfd;border:1px solid #c9d8e5;border-radius:12px;padding:16px;position:relative;overflow:hidden}
+.factor-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--category-color)}
+.factor-top{display:flex;align-items:start;justify-content:space-between;gap:10px}
+.factor-title{display:flex;align-items:baseline;gap:7px}
+.factor-number{color:#526b80;font-size:11px;font-weight:700}
+.factor-title h3{font-size:15px;line-height:1.4;margin:0;font-weight:700}
+.factor-definition{color:var(--muted);font-size:12px;line-height:1.6;margin:9px 0 0}
+.factor-rank{white-space:nowrap;font-size:11px;color:var(--muted);flex:none}
+.factor-rank b{color:var(--navy)}
+.factor-score-row{display:flex;align-items:end;gap:8px;margin-top:18px;flex-wrap:wrap}
+.score-control{min-width:0}
+.score-control label{display:block;font-size:11px;font-weight:700;margin-bottom:6px;color:#456176}
+.score-control select{width:77px;min-height:42px;padding:8px 7px;color:var(--ink);background:#fff;border:1px solid #aebfce;border-radius:7px;font-size:15px}
+.score-times,.score-equals{font-size:15px;color:#627b91;line-height:42px}
+.risk-result{display:flex;gap:6px;align-items:center;min-height:42px;margin-left:1px;flex-wrap:wrap}
+.risk-number{font-size:25px;font-weight:700;line-height:1.2;color:var(--navy)}
+.risk-level{font-size:10px;font-weight:700;padding:5px 7px;border-radius:5px;background:#e7eef4;color:#526b80;white-space:nowrap}
+.risk-level.low{background:#e2eedf;color:#355f35}
+.risk-level.moderate{background:#fff0c7;color:#70551b}
+.risk-level.high{background:#f7ddc3;color:#805021}
+.risk-level.critical{background:#f5d5d8;color:#8c3037}
+.category-footer{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:19px}
+.category-footer>span{font-size:11px;color:var(--muted);max-width:55%}
+.category-footer .primary-button{font-size:12px;white-space:nowrap}
+.insights-panel{position:sticky;top:18px;min-width:0}
+.insight-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px}
+.insight-title{display:flex;align-items:center;gap:8px}
+.insight-title h2{font-size:17px}
+.tiny-square{width:11px;height:11px;flex:none;border:2px solid #006d8f;box-shadow:3px 3px 0 #dceaf4}
+.live-tag{font-size:9px;line-height:1.4;font-weight:700;letter-spacing:.07em;padding:3px 5px;background:#e6f4f7;color:#075e76;border-radius:4px;margin-left:auto}
+.panel-copy{font-size:12px;color:var(--muted);margin:9px 0 18px;line-height:1.6}
+.heatmap-impact{font-size:10px;font-weight:700;letter-spacing:.07em;color:#526b80;text-align:center;margin:0 0 8px 20px}
+.heatmap-layout{display:flex;gap:5px}
+.heatmap-likelihood{writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;letter-spacing:.06em;font-weight:700;color:#526b80;text-align:center;flex:none;width:13px;padding-top:15px}
+.heatmap{flex:1;min-width:0;display:grid;grid-template-columns:16px repeat(5,minmax(0,1fr));gap:4px;align-items:center}
+.heatmap-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid transparent;border-radius:5px;font-size:12px;font-weight:400;min-width:0}
+.heatmap-cell:hover{border-color:#17324d}
+.heatmap-cell.selected{outline:2px solid var(--navy);outline-offset:1px}
+.heatmap-cell.nonempty{font-weight:700}
+.heatmap-cell.low{background:#e2eedf;color:#355f35}
+.heatmap-cell.moderate{background:#fff0c7;color:#70551b}
+.heatmap-cell.high{background:#f7ddc3;color:#805021}
+.heatmap-cell.critical{background:#f5d5d8;color:#8c3037}
+.heatmap-axis{font-size:10px;color:var(--muted);text-align:center}
+.heatmap-axis.top{margin-top:4px}
+.heatmap-caption{display:flex;align-items:center;gap:7px;font-size:10px;color:var(--muted);margin:13px 0 0 33px}
+.severity-scale{display:flex;gap:3px;height:5px;flex:1}
+.severity-scale i{flex:1;background:#e2eedf}
+.severity-scale i:nth-child(2){background:#fff0c7}
+.severity-scale i:nth-child(3){background:#f7ddc3}
+.severity-scale i:nth-child(4){background:#f5d5d8}
+.heatmap-help{font-size:11px;line-height:1.65;color:var(--muted);margin:16px 0}
+.score-key{display:grid;grid-template-columns:1fr 1fr;gap:9px 12px;border-top:1px solid #e1e8ee;padding-top:14px}
+.score-key>span{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)}
+.score-key i{width:7px;height:7px;border-radius:50%;background:#729a6f;flex:none}
+.score-key b{font-weight:400;margin-left:auto;color:var(--muted)}
+.score-key .moderate-dot{background:#caa94f}.score-key .high-dot{background:#c78c55}.score-key .critical-dot{background:#b86770}
+.cell-detail{font-size:11px;line-height:1.65;color:var(--muted);background:#edf4fa;border:1px solid #d6e4ee;border-radius:7px;padding:11px;margin-bottom:14px}
+.cell-detail strong{display:block;color:var(--navy)}
+.cell-detail ul{margin:6px 0 0;padding-left:16px}
+.cell-detail p{margin:4px 0 0}
+.priority-card{margin-top:15px}
+.priority-icon{font-size:20px;color:#006d8f}
+.priority-empty{text-align:center;padding:24px 0 8px}
+.empty-symbol{display:inline-flex;flex-direction:column;gap:4px;padding:5px;width:25px;height:25px;border:1px solid #bacddb;background:#edf4fa;border-radius:4px;margin-bottom:10px}
+.empty-symbol i{height:2px;background:#a8c1d4}
+.priority-empty p{font-size:12px;color:#456176;font-weight:700;margin:0 0 6px}
+.priority-empty span{font-size:11px;line-height:1.7;color:var(--muted)}
+.priority-items{list-style:none;padding:0;margin:16px 0 0}
+.priority-item{display:flex;align-items:center;gap:9px;padding:11px 0;border-top:1px solid #e1e8ee}
+.priority-item:first-child{border-top:0}
+.priority-rank{font-size:11px;color:var(--muted);width:16px;flex:none}
+.priority-name{flex:1;font-size:12px;line-height:1.5}
+.priority-score{font-size:14px;font-weight:700;color:var(--navy)}
+.sidebar-note{display:flex;align-items:start;gap:7px;font-size:11px;line-height:1.7;color:var(--muted);margin:15px 2px 0}
+.sidebar-note>span{font-size:13px}
+.page-footer{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;border-top:1px solid var(--border);margin-top:24px;padding-top:18px;color:var(--muted);font-size:12px}
+.page-footer>span>span{padding:0 6px}
+.page-footer .text-button{font-size:12px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:var(--navy);color:#fff;padding:12px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;max-width:90%;text-align:center;z-index:30}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+dialog{border:1px solid #b9cbd9;border-radius:14px;padding:26px;width:min(760px,calc(100% - 32px));max-height:85dvh;color:var(--ink);background:#fff;box-shadow:0 20px 70px #17324d30}
+dialog::backdrop{background:#12385f66}
+.dialog-heading{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:12px}
+.dialog-heading .eyebrow{margin:0}
+.close-dialog{border:1px solid #b9c7d4;border-radius:7px;padding:4px 10px;min-height:36px;min-width:36px;background:#fff;color:var(--ink);font-size:21px;line-height:1}
+.close-dialog:hover{background:#edf4fa}
+.dialog-heading+h2{font-size:25px;line-height:1.25}
+dialog>p{font-size:13px;line-height:1.75;color:var(--muted)}
+.guide-columns{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0}
+.guide-columns section{background:#edf4fa;border:1px solid #d6e4ee;border-radius:9px;padding:18px}
+.guide-columns h3{font-size:15px;margin:0 0 10px}
+.guide-columns ol{font-size:12px;color:#456176;line-height:1.8;padding-left:18px;margin:0}
+.guide-columns li{padding:4px 0}
+.guide-columns strong{color:var(--ink)}
+.formula-note{font-size:14px;background:#e6f4f7;border-left:4px solid #006d8f;border-radius:0 8px 8px 0;padding:15px;color:#164f62}
+.formula-note strong,.formula-note span{display:block}
+.formula-note span{font-size:12px;margin-top:5px}
+.dialog-footnote{font-size:12px}
+.definition-section{margin-top:20px}
+.definition-section h3{font-size:14px;margin:0;padding:10px 12px;border-radius:7px;background:var(--group-tint);color:var(--group-color)}
+.definition-table{width:100%;border-collapse:collapse}
+.definition-table th,.definition-table td{text-align:left;vertical-align:top;line-height:1.65;font-size:12px;padding:12px;border-bottom:1px solid #e1e8ee}
+.definition-table th{width:35%;font-weight:700;color:var(--ink)}
+.definition-table td{color:var(--muted)}
+.small-dialog{max-width:460px}
+.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.dialog-actions .close-dialog{font-size:13px;line-height:1.4;padding:9px 14px;min-height:42px}
+.noscript{background:#fff9ed;border:1px solid #d9b983;padding:22px;margin:16px;text-align:center}
+.print-report{display:none}
+@media(max-width:1100px){#factor-cards{grid-template-columns:1fr}.factor-score-row{gap:12px}.score-control select{width:95px}.hero-count{display:none}.assessment-panel{padding:20px}.category-tabs{grid-template-columns:1fr 1fr}.category-tab{font-size:12px}.input-key{display:none}}
+@media(max-width:800px){.workspace-layout{grid-template-columns:1fr}.insights-panel{position:static;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.priority-card{margin-top:0}.heatmap-card{grid-row:span 2}.sidebar-note{margin-top:0}.assessment-overview{grid-template-columns:repeat(3,minmax(0,1fr))}.location-field{grid-column:1/-1}.location-field select{max-width:100%}.workspace-actions{flex-wrap:wrap}.print-scope{display:none}.category-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}#factor-cards{grid-template-columns:1fr}.factor-score-row{gap:8px}.score-control select{width:77px}.factor-rank{font-size:10px}}
+@media(max-width:620px){.page-shell{padding:12px 12px 25px}.intro{padding:22px 20px}.intro-copy{font-size:14px}.intro .eyebrow{font-size:10px}h1{font-size:27px}.resource-toolbar{margin:15px 0 12px;align-items:start}.header-actions{width:100%}.header-actions .text-button{font-size:12px;flex:1}.session-note{font-size:11px}.workspace-bar{align-items:start;gap:11px;margin-bottom:15px}.location-tabs{width:100%;gap:8px}.location-tab{flex:1;padding:9px 11px;font-size:13px}.workspace-actions{width:100%}.workspace-actions .outline-button{width:100%}.assessment-overview{gap:9px;margin-bottom:15px}.location-field,.metric{padding:14px 11px;border-radius:10px}.metric>span{font-size:11px;min-height:33px;margin-bottom:5px}.metric>strong{font-size:26px}.metric strong small{font-size:11px}.metric>small{font-size:10px;line-height:1.6}.assessment-panel{padding:18px 14px}.section-heading h2{font-size:20px}.category-tabs{grid-template-columns:1fr 1fr}.category-tab{font-size:12px;min-height:42px;padding:9px 6px}.category-description{font-size:11px;gap:8px}.category-description span:last-child{font-size:10px}#factor-cards{grid-template-columns:1fr;gap:11px}.factor-card{padding:16px 15px}.factor-score-row{gap:9px}.score-control select{width:80px;min-height:44px}.factor-title h3{font-size:15px}.factor-definition{font-size:12px}.risk-number{font-size:25px}.risk-level{font-size:10px}.category-footer{gap:10px;align-items:start}.category-footer>span{font-size:10px;max-width:50%;line-height:1.7}.category-footer .primary-button{font-size:11px;padding:10px 12px;min-height:42px}.insights-panel{grid-template-columns:1fr;gap:15px}.heatmap-card{grid-row:auto;padding:22px}.heatmap-layout{max-width:320px;margin:auto}.heatmap-cell{font-size:14px}.heatmap{gap:5px}.heatmap-impact{margin-left:22px}.insight-title h2{font-size:18px}.heatmap-help,.score-key>span{font-size:12px}.score-key{gap:10px 15px}.priority-card{padding:22px}.priority-name,.priority-empty p{font-size:13px}.priority-empty span{font-size:12px}.sidebar-note{font-size:12px}.page-footer{font-size:11px;gap:12px}.page-footer .text-button{font-size:11px}dialog{padding:22px}.guide-columns{grid-template-columns:1fr;gap:12px}.definition-table th,.definition-table td{font-size:11px;padding:10px 6px}}
+@media(max-width:360px){.factor-score-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px}.score-control select{width:100%}.score-equals{display:none}.risk-result{grid-column:1/-1}.factor-top{gap:7px}.factor-number{font-size:10px}.factor-title{gap:5px}.risk-level{font-size:11px}.metric>span{font-size:10px}.metric>strong{font-size:24px}.category-description span:first-child{max-width:72%}.location-tab{padding:10px 8px;gap:5px;font-size:12px}.tab-count{font-size:10px}}
+@media(prefers-reduced-motion:no-preference){button,.progress-track div{transition:background .15s,border-color .15s,width .2s}.toast{transition:opacity .2s,transform .2s}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+@page{size:auto;margin:12mm}
+@media print{
+  html,body{background:#fff!important;color:#17324d!important;font-size:10px;line-height:1.3;margin:0!important;padding:0!important}
+  .app-header,.page-shell,dialog,.toast,.noscript,.skip-link{display:none!important}
+  .print-report{display:block!important;width:100%;margin:0;padding:0;font-family:Aptos,"Segoe UI",Arial,sans-serif}
+  .print-heading{margin-bottom:12px}
+  .print-heading>p{font-size:8px;letter-spacing:1.4px;margin:0 0 5px;color:#526b80}
+  .print-heading h1{font-size:22px;letter-spacing:-.6px;line-height:1.2;margin:0 0 5px;color:#17324d}
+  .print-heading h2{font-size:13px;letter-spacing:0;margin:0;overflow-wrap:anywhere}
+  .print-summary{display:flex;gap:26px;border-block:1px solid #c7d6e3;padding:8px 0;margin-bottom:10px;font-size:10px}
+  .print-factors{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px}
+  .print-factor-column{width:49%}
+  .print-factors thead{display:table-header-group}
+  .print-factors thead th{padding:6px 4px;background:#eaf1f7;border-bottom:1px solid #aebbaf;font-size:8px;text-align:center;overflow-wrap:normal}
+  .print-factors thead th:first-child{text-align:left}
+  .print-group th{background:#eff4f8;text-align:left;border-block:1px solid #d3ded2;padding:5px;font-size:9px}
+  .print-factor th,.print-factor td{border-bottom:1px solid #dde5da;padding:4px 5px;vertical-align:middle;text-align:center}
+  .print-factor th{text-align:left;font-weight:400}
+  .print-factor strong{display:block;font-size:10px;line-height:1.25}
+  .print-definition{display:block;font-size:9px;line-height:1.3;color:#4e6478;margin-top:2px}
+  .print-factor,.print-group{break-inside:avoid;page-break-inside:avoid}
+  .print-insights{display:grid;grid-template-columns:240px 1fr;gap:30px;margin-top:14px;break-inside:avoid;page-break-inside:avoid}
+  .print-insights h3{font-size:11px;margin:0 0 7px}
+  .print-heatmap{width:100%;border-collapse:collapse;table-layout:fixed;font-size:9px}
+  .print-heatmap th,.print-heatmap td{border:1px solid #cbd7ca;text-align:center;padding:4px}
+  .print-heatmap th:first-child{width:30%;font-size:8px}
+  .print-heatmap thead th{height:26px;background:#edf2e8}
+  .print-heatmap tbody th{background:#edf2e8}
+  .print-heatmap tbody td{height:23px;font-weight:600}
+  .print-severity.low{background:#e2eddc}
+  .print-severity.moderate{background:#f4edcb}
+  .print-severity.high{background:#f4e1ce}
+  .print-severity.critical{background:#f0d7d6}
+  .print-guide p{font-size:9px;line-height:1.5;margin:0 0 8px}
+  .print-report,.print-report *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+.assessment-scope{display:flex;align-items:center;gap:10px;min-height:43px;padding:10px 14px;background:var(--navy);color:#fff;border-radius:8px;font-size:13px}.assessment-scope .tab-count{background:#ffffff20;color:#fff}.assessment-scope>span:first-child{font-size:16px}
+</style>
+  <script type="module">
+/** All assessment data is held by the caller in browser memory. */
+const FACTOR_GROUPS = [
+  {
+    id: 'environmental',
+    name: 'Environmental',
+    factors: [
+      { id: 'carbon-emissions', name: 'Carbon emissions', definition: 'Greenhouse gas emissions throughout the project lifecycle.' },
+      { id: 'water-consumption', name: 'Water consumption', definition: 'Use of water resources during construction and operation.' },
+      { id: 'biodiversity-impacts', name: 'Biodiversity impacts', definition: 'Effects on ecosystems, habitats, and species conservation.' },
+      { id: 'land-use', name: 'Land use', definition: 'Land requirements and impacts on existing land uses.' },
+    ],
+  },
+  {
+    id: 'social-policy',
+    name: 'Social & Policy',
+    factors: [
+      { id: 'public-acceptance', name: 'Public acceptance', definition: 'Community support and stakeholder engagement for project success.' },
+      { id: 'environmental-justice', name: 'Environmental justice', definition: 'Fair distribution of benefits and burdens across communities.' },
+      { id: 'regulatory-certainty', name: 'Regulatory certainty', definition: 'Stability of policies, incentives, and permitting processes that reduce risk.' },
+      { id: 'workforce-development', name: 'Workforce development', definition: 'Job creation and skills building for a sustainable clean energy workforce.' },
+    ],
+  },
+  {
+    id: 'economic',
+    name: 'Economic',
+    factors: [
+      { id: 'capital-cost', name: 'Capital cost', definition: 'Upfront investment required for construction and equipment.' },
+      { id: 'operating-cost', name: 'Operating cost', definition: 'Ongoing expenses for operation and maintenance.' },
+      { id: 'return-on-investment', name: 'Return on investment', definition: 'Expected financial returns over the project lifetime.' },
+      { id: 'levelized-cost-of-energy', name: 'Levelized Cost of Energy (LCOE)', definition: 'Total cost of energy generation over the system’s lifetime.' },
+    ],
+  },
+  {
+    id: 'technical',
+    name: 'Technical',
+    factors: [
+      { id: 'resource-availability', name: 'Resource availability', definition: 'Adequacy and consistency of renewable resource potential.' },
+      { id: 'grid-integration', name: 'Grid integration', definition: 'Compatibility with existing grid infrastructure and capacity.' },
+      { id: 'storage-requirements', name: 'Storage requirements', definition: 'Need for energy storage to ensure reliability and flexibility.' },
+      { id: 'reliability', name: 'Reliability', definition: 'Ability to consistently meet energy demand.' },
+    ],
+  },
+].map(group => ({
+  ...group,
+  factors: group.factors.map(factor => ({ ...factor, groupId: group.id, groupName: group.name })),
+}));
+
+const FACTORS = FACTOR_GROUPS.flatMap(group => group.factors);
+
+/** Create a fresh assessment, including fresh nested entries, for each session. */
+function createAssessment() {
+  return {
+    location: '',
+    entries: Object.fromEntries(FACTORS.map(({ id }) => [id, {
+      likelihood: '',
+      impact: '',
+    }])),
+  };
+}
+
+function rating(value) {
+  if (typeof value !== 'number' && typeof value !== 'string') return null;
+  if (typeof value === 'string' && value.trim() === '') return null;
+  const number = Number(value);
+  return Number.isInteger(number) && number >= 1 && number <= 5 ? number : null;
+}
+
+function scoreLevel(score) {
+  if (score === null) return null;
+  if (score <= 4) return 'Low';
+  if (score <= 9) return 'Moderate';
+  if (score <= 14) return 'High';
+  return 'Critical';
+}
+
+/**
+ * Compute risk = likelihood × impact. Unscored factors are excluded from the
+ * summary and ranks. Heatmap rows run from likelihood 5 to 1; columns from
+ * impact 1 to 5. Tied scores share a competition rank.
+ */
+function calculateAssessment(assessment) {
+  const rows = FACTORS.map(factor => {
+    const entry = assessment?.entries?.[factor.id] ?? {};
+    const likelihood = rating(entry.likelihood);
+    const impact = rating(entry.impact);
+    const score = likelihood === null || impact === null ? null : likelihood * impact;
+    return {
+      ...factor,
+      likelihood,
+      impact,
+      score,
+      level: scoreLevel(score),
+      rank: null,
+    };
+  });
+
+  const scored = rows.filter(row => row.score !== null);
+  const heatmap = Array.from({ length: 5 }, () => Array(5).fill(0));
+  for (const row of scored) {
+    row.rank = scored.filter(other => other.score > row.score).length + 1;
+    heatmap[5 - row.likelihood][row.impact - 1] += 1;
+  }
+
+  return {
+    rows,
+    heatmap,
+    count: scored.length,
+    criticalCount: scored.filter(row => row.level === 'Critical').length,
+    averageScore: scored.length ? scored.reduce((total, row) => total + row.score, 0) / scored.length : null,
+  };
+}
+
+
+const $=id=>document.getElementById(id);
+const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const palettes={environmental:{color:'#44725c',tint:'#e5eee5',description:'Consider the effects on natural systems and resources.'},'social-policy':{color:'#556e99',tint:'#e7edf5',description:'Consider communities, policy, and the people behind the project.'},economic:{color:'#907344',tint:'#f1ece1',description:'Consider investment, ongoing costs, and financial returns.'},technical:{color:'#78678f',tint:'#eee9f4',description:'Consider resources, infrastructure, and dependable energy.'}};
+const LOCATION_LABEL="U.S. State";
+let assessment=createAssessment();
+let selectedGroup=FACTOR_GROUPS[0].id;
+let selectedCell=null;
+let toastTimer;
+const current=()=>assessment;
+const result=()=>calculateAssessment(current());
+const severity=score=>score<=4?'Low':score<=9?'Moderate':score<=14?'High':'Critical';
+const groupPalette=id=>palettes[id]??palettes.environmental;
+const announce=message=>{clearTimeout(toastTimer);$('toast').textContent=message;$('toast').classList.add('show');toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3500);};
+
+function renderCategories(){
+ $('category-tabs').innerHTML=FACTOR_GROUPS.map(group=>`<button class="category-tab" type="button" data-category="${group.id}" aria-pressed="${group.id===selectedGroup}"><span class="category-dot" style="background:${groupPalette(group.id).color}"></span>${escape(group.name)}</button>`).join('');
+ const group=FACTOR_GROUPS.find(g=>g.id===selectedGroup);
+ $('category-description').textContent=groupPalette(group.id).description;
+ const last=FACTOR_GROUPS.at(-1).id===selectedGroup;
+ $('next-category').innerHTML=last?'Print / Save PDF':'Next category <span aria-hidden="true">→</span>';
+}
+
+function scoreControl(factor,field,value){
+ const label=field==='likelihood'?'Likelihood':'Impact';
+ return `<div class="score-control"><label for="${factor.id}-${field}">${label}</label><select id="${factor.id}-${field}" data-factor="${factor.id}" data-field="${field}" aria-label="${label} for ${escape(factor.name)} (1 to 5)"><option value=""${value===''?' selected':''}>—</option>${[1,2,3,4,5].map(n=>`<option value="${n}"${Number(value)===n?' selected':''}>${n}</option>`).join('')}</select></div>`;
+}
+
+function renderCards(){
+ const group=FACTOR_GROUPS.find(g=>g.id===selectedGroup);
+ $('factor-cards').innerHTML=group.factors.map(factor=>{
+  const entry=current().entries[factor.id];
+  const number=String(FACTORS.findIndex(f=>f.id===factor.id)+1).padStart(2,'0');
+  return `<article class="factor-card" data-card="${factor.id}" style="--category-color:${groupPalette(group.id).color}" aria-labelledby="${factor.id}-title">
+   <div class="factor-top"><div><div class="factor-title"><span class="factor-number">${number}</span><h3 id="${factor.id}-title">${escape(factor.name)}</h3></div><p class="factor-definition">${escape(factor.definition)}</p></div><span class="factor-rank" data-rank="${factor.id}">Rank <b>—</b></span></div>
+   <div class="factor-score-row">${scoreControl(factor,'likelihood',entry.likelihood)}<span class="score-times" aria-hidden="true">×</span>${scoreControl(factor,'impact',entry.impact)}<span class="score-equals" aria-hidden="true">=</span><div class="risk-result" data-score="${factor.id}" role="status" aria-live="polite" aria-atomic="true" aria-label="Calculated risk score"><span class="risk-number">—</span><span class="risk-level">Not scored</span></div></div>
+  </article>`;
+ }).join('');
+ updateResults();
+}
+
+function updateResults(){
+ const summary=result();
+ $('completed-count').textContent=summary.count;
+ $('critical-count').textContent=summary.criticalCount;
+ $('average-score').textContent=summary.averageScore===null?'—':summary.averageScore.toFixed(1);
+ $('progress-fill').style.width=`${summary.count/16*100}%`;
+ $('scope-count').textContent=`${summary.count}/16`;
+ const groupRows=summary.rows.filter(row=>row.groupId===selectedGroup);
+ const groupCount=groupRows.filter(row=>row.score!==null).length;
+ $('category-progress').textContent=`${groupCount} of 4 scored`;
+ $('category-footer-copy').textContent=`${summary.count} of 16 factors scored across all categories.`;
+ for(const row of groupRows){
+  const rank=document.querySelector(`[data-rank="${row.id}"]`);
+  if(rank)rank.innerHTML=`Rank <b>${row.rank===null?'—':row.rank}</b>`;
+  const score=document.querySelector(`[data-score="${row.id}"]`);
+  const label=row.score===null?`${row.name}: not scored`:`${row.name}: risk score ${row.score}, ${row.level}, priority rank ${row.rank}`;
+  if(score&&score.getAttribute('aria-label')!==label){score.innerHTML=`<span class="risk-number">${row.score??'—'}</span><span class="risk-level${row.level?' '+row.level.toLowerCase():''}">${row.level??'Not scored'}</span>`;score.setAttribute('aria-label',label);}
+ }
+ renderHeatmap(summary);
+ renderPriorities(summary);
+}
+
+function renderHeatmap(summary){
+ let html='';
+ for(let row=0;row<5;row++){
+  const likelihood=5-row;
+  html+=`<span class="heatmap-axis" aria-hidden="true">${likelihood}</span>`;
+  for(let col=0;col<5;col++){
+   const impact=col+1,count=summary.heatmap[row][col],level=severity(likelihood*impact);
+   const selected=selectedCell?.[0]===likelihood&&selectedCell?.[1]===impact;
+   html+=`<button type="button" class="heatmap-cell ${level.toLowerCase()}${count?' nonempty':''}${selected?' selected':''}" data-cell="${likelihood},${impact}" aria-pressed="${selected}" aria-label="Likelihood ${likelihood}, impact ${impact}: ${count} ${count===1?'factor':'factors'}, ${level.toLowerCase()} severity">${count}</button>`;
+  }
+ }
+ html+='<span aria-hidden="true"></span>'+[1,2,3,4,5].map(n=>`<span class="heatmap-axis top" aria-hidden="true">${n}</span>`).join('');
+ const focused=document.activeElement?.dataset?.cell;
+ $('heatmap').innerHTML=html;
+ if(focused)$('heatmap').querySelector(`[data-cell="${focused}"]`)?.focus({preventScroll:true});
+ if(selectedCell){
+  const [likelihood,impact]=selectedCell;
+  const matches=summary.rows.filter(row=>row.score!==null&&row.likelihood===likelihood&&row.impact===impact);
+  $('cell-detail').hidden=false;
+  $('cell-detail').innerHTML=`<strong>Likelihood ${likelihood} · Impact ${impact}</strong>${matches.length?`<ul>${matches.map(row=>`<li>${escape(row.name)}</li>`).join('')}</ul>`:'<p>No scored factors at this combination.</p>'}`;
+ }else $('cell-detail').hidden=true;
+}
+
+function renderPriorities(summary){
+ const top=summary.rows.filter(row=>row.score!==null).sort((a,b)=>b.score-a.score).slice(0,5);
+ $('priority-list').innerHTML=top.length?`<ol class="priority-items">${top.map(row=>`<li class="priority-item"><span class="priority-rank">${row.rank}.</span><span class="priority-name">${escape(row.name)}</span><span class="priority-score" aria-label="Risk score ${row.score}">${row.score}</span></li>`).join('')}</ol>`:'<div class="priority-empty"><span class="empty-symbol" aria-hidden="true"><i></i><i></i><i></i></span><p>A clearer picture starts here.</p><span>Score a factor to see your<br>highest-priority risks.</span></div>';
+}
+
+function resetAssessment(){
+ assessment=createAssessment();selectedCell=null;
+ $('location-name').value='';
+ renderCards();
+}
+
+function renderDefinitions(){
+ $('definitions-content').innerHTML=FACTOR_GROUPS.map(group=>`<section class="definition-section" style="--group-color:${groupPalette(group.id).color};--group-tint:${groupPalette(group.id).tint}"><h3>${escape(group.name)}</h3><table class="definition-table"><caption class="sr-only">${escape(group.name)} decision factors and definitions</caption><tbody>${group.factors.map(factor=>`<tr><th scope="row">${escape(factor.name)}</th><td>${escape(factor.definition)}</td></tr>`).join('')}</tbody></table></section>`).join('');
+}
+
+function renderPrintReport(){
+ const summary=result();
+ const locationType=LOCATION_LABEL;
+ let table='';
+ for(const group of FACTOR_GROUPS){
+  table+=`<tbody class="print-category"><tr class="print-group"><th colspan="6" scope="colgroup">${escape(group.name)}</th></tr>`;
+  for(const row of summary.rows.filter(row=>row.groupId===group.id)){
+   table+=`<tr class="print-factor"><th scope="row"><strong>${escape(row.name)}</strong><span class="print-definition">${escape(row.definition)}</span></th><td>${row.likelihood??'—'}</td><td>${row.impact??'—'}</td><td>${row.score??'—'}</td><td>${row.level??'—'}</td><td>${row.rank??'—'}</td></tr>`;
+  }
+  table+='</tbody>';
+ }
+ let heatmap='<thead><tr><th scope="col">Likelihood ↓ / Impact →</th>'+[1,2,3,4,5].map(n=>`<th scope="col">${n}</th>`).join('')+'</tr></thead><tbody>';
+ for(let row=0;row<5;row++)heatmap+=`<tr><th scope="row">${5-row}</th>`+summary.heatmap[row].map((count,col)=>`<td class="print-severity ${severity((5-row)*(col+1)).toLowerCase()}">${count}</td>`).join('')+'</tr>';
+ heatmap+='</tbody>';
+ $('print-report').innerHTML=`<header class="print-heading"><p>AI ENERGY LAB · RISK ANALYSIS</p><h1>AI facility risk assessment — ${locationType}</h1><h2>${locationType}: ${escape(current().location.trim()||'Not specified')}</h2></header><div class="print-summary"><span><strong>${summary.count}/16</strong> factors scored</span><span><strong>${summary.criticalCount}</strong> critical risks</span><span>Average score: <strong>${summary.averageScore?.toFixed(1)??'—'}</strong> / 25</span></div><table class="print-factors"><colgroup><col class="print-factor-column"><col><col><col><col><col></colgroup><thead><tr><th scope="col">Decision factor and definition</th><th scope="col">Likelihood</th><th scope="col">Impact</th><th scope="col">Risk score</th><th scope="col">Risk level</th><th scope="col">Priority rank</th></tr></thead>${table}</table><div class="print-insights"><section><h3>Risk frequency heat map</h3><table class="print-heatmap">${heatmap}</table></section><section class="print-guide"><h3>Reading the results</h3><p>Risk score = Likelihood × Impact.</p><p>Low: 1–4 · Moderate: 5–9<br>High: 10–14 · Critical: 15–25</p><p>Heat map numbers count scored factors.<br>Priority 1 is the highest score; ties share a rank.</p><p>— indicates an incomplete result.</p></section></div>`;
+}
+
+function printAssessment(){
+ renderPrintReport();
+ window.print();
+}
+
+$('location-name').addEventListener('change',event=>{current().location=event.target.value;});
+$('category-tabs').addEventListener('click',event=>{const tab=event.target.closest('[data-category]');if(!tab)return;selectedGroup=tab.dataset.category;renderCategories();renderCards();$('category-tabs').querySelector(`[data-category="${selectedGroup}"]`).focus({preventScroll:true});});
+$('factor-cards').addEventListener('input',event=>{
+ const {factor,field}=event.target.dataset;
+ if(!factor||!['likelihood','impact'].includes(field)||!current().entries[factor])return;
+ current().entries[factor][field]=event.target.value;
+ if(field==='likelihood'||field==='impact')updateResults();
+});
+$('heatmap').addEventListener('click',event=>{
+ const button=event.target.closest('[data-cell]');if(!button)return;
+ const pair=button.dataset.cell.split(',').map(Number);
+ selectedCell=selectedCell?.[0]===pair[0]&&selectedCell?.[1]===pair[1]?null:pair;
+ renderHeatmap(result());
+});
+$('next-category').addEventListener('click',()=>{
+ const index=FACTOR_GROUPS.findIndex(group=>group.id===selectedGroup);
+ if(index===FACTOR_GROUPS.length-1){printAssessment();return;}
+ selectedGroup=FACTOR_GROUPS[index+1].id;renderCategories();renderCards();$('assessment').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});$('category-tabs').querySelector(`[data-category="${selectedGroup}"]`).focus({preventScroll:true});
+});
+$('definitions-button').addEventListener('click',()=>$('definitions-dialog').showModal());
+$('guide-button').addEventListener('click',()=>$('guide-dialog').showModal());
+$('print-button').addEventListener('click',printAssessment);
+window.addEventListener('beforeprint',renderPrintReport);
+$('reset-button').addEventListener('click',()=>{
+ $('reset-dialog').showModal();
+});
+$('confirm-reset').addEventListener('click',()=>{resetAssessment();$('reset-dialog').close();announce("U.S. State assessment has been reset.");});
+document.querySelectorAll('.close-dialog').forEach(button=>button.addEventListener('click',()=>button.closest('dialog').close()));
+document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}));
+window.addEventListener('pageshow',event=>{if(event.persisted){document.querySelectorAll('dialog[open]').forEach(dialog=>dialog.close());$('print-report').replaceChildren();resetAssessment();}});
+renderDefinitions();renderCategories();renderCards();
+
+</script>
+</head>
+<body>
+  <a class="skip-link" href="#assessment">Skip to assessment</a>
+  <main class="page-shell">
+    <header class="intro" aria-labelledby="page-title">
+      <div><p class="eyebrow">AI FACILITY · LOCATION &amp; ENERGY DECISIONS</p><h1 id="page-title">AI Facility Risk Analysis — U.S. State</h1>
+      <p class="intro-copy">Assess 16 decision factors for your assigned U.S. state. Rate likelihood and impact, then use the risk heat map and priority rankings to support your recommendation.</p></div>
+      <div class="hero-count" aria-label="16 decision factors"><strong>16</strong><span>decision factors</span></div>
+    </header>
+
+    <div class="resource-toolbar">
+      <p class="session-note">Your own workspace · Entries reset when you reload. Print or save a PDF to keep your results.</p>
+      <nav class="header-actions" aria-label="Resources">
+        <button type="button" class="text-button" id="definitions-button">Factor definitions <span aria-hidden="true">↗</span></button>
+        <button type="button" class="text-button" id="guide-button"><span class="help-icon" aria-hidden="true">?</span> How to score</button>
+      </nav>
+    </div>
+
+    <section class="workspace-bar" aria-label="Assessment location">
+      <div class="assessment-scope" aria-label="U.S. State assessment"><span aria-hidden="true">◈</span><strong>U.S. State assessment</strong><span class="tab-count" id="scope-count">0/16</span></div>
+      <div class="workspace-actions"><span class="print-scope" id="print-scope">U.S. State · all 16 factors</span><button class="outline-button" id="print-button" aria-describedby="print-scope"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7V2h10v5M5 14H3V7h14v7h-2M5 11h10v7H5zM14 9h1"/></svg> Print / Save PDF</button></div>
+    </section>
+
+    <section class="assessment-overview" aria-label="Assessment overview">
+      <div class="location-field"><label id="location-label" for="location-name">Assigned U.S. state</label><select id="location-name" autocomplete="off"><option value="">Select a state</option><option value="Colorado">Colorado</option><option value="Connecticut">Connecticut</option><option value="Maryland">Maryland</option><option value="New York">New York</option><option value="South Dakota">South Dakota</option><option value="Texas">Texas</option><option value="West Virginia">West Virginia</option></select></div>
+      <div class="overview-divider"></div>
+      <div class="metric"><span>Factors scored</span><strong><b id="completed-count">0</b><small> / 16</small></strong><div class="progress-track"><div id="progress-fill"></div></div></div>
+      <div class="metric"><span>Critical risks</span><strong id="critical-count">0</strong><small>Score of 15–25</small></div>
+      <div class="metric"><span>Average risk score</span><strong><b id="average-score">—</b><small> / 25</small></strong><small>Across scored factors</small></div>
+    </section>
+
+    <div class="workspace-layout">
+      <section class="assessment-panel" id="assessment" aria-labelledby="assessment-heading" tabindex="-1">
+        <div class="section-heading"><div><p class="eyebrow">THE ASSESSMENT</p><h2 id="assessment-heading">Score your decision factors</h2></div><span class="input-key"><i></i> Your inputs</span></div>
+        <div class="category-tabs" id="category-tabs" role="group" aria-label="Decision factor category"></div>
+        <div class="category-description"><span id="category-description"></span><span id="category-progress"></span></div>
+        <div id="factor-cards"></div>
+        <div class="category-footer"><span id="category-footer-copy"></span><button id="next-category" class="primary-button">Next category <span aria-hidden="true">→</span></button></div>
+      </section>
+
+      <aside class="insights-panel" aria-label="Live risk insights">
+        <section class="insight-card heatmap-card" aria-labelledby="heatmap-title">
+          <div class="insight-title"><span class="tiny-square" aria-hidden="true"></span><h2 id="heatmap-title">Your risk heat map</h2><span class="live-tag">LIVE</span></div>
+          <p class="panel-copy">See where your scored factors fall.</p>
+          <div class="heatmap-impact">IMPACT <span aria-hidden="true">→</span></div>
+          <div class="heatmap-layout"><div class="heatmap-likelihood">LIKELIHOOD <span aria-hidden="true">→</span></div><div id="heatmap" class="heatmap" role="group" aria-label="Risk frequency heat map"></div></div>
+          <div class="heatmap-caption"><span>Low</span><div class="severity-scale" aria-hidden="true"><i></i><i></i><i></i><i></i></div><span>Critical</span></div>
+          <p class="heatmap-help">Color shows severity. Each number counts factors. Select a cell to explore.</p>
+          <div id="cell-detail" class="cell-detail" hidden></div>
+          <div class="score-key"><span><i class="low-dot"></i> Low <b>1–4</b></span><span><i class="moderate-dot"></i> Moderate <b>5–9</b></span><span><i class="high-dot"></i> High <b>10–14</b></span><span><i class="critical-dot"></i> Critical <b>15–25</b></span></div>
+        </section>
+        <section class="insight-card priority-card" aria-labelledby="priorities-title"><div class="insight-title"><span class="priority-icon" aria-hidden="true">↗</span><h2 id="priorities-title">Highest priority</h2></div><div id="priority-list"></div></section>
+        <p class="sidebar-note"><span aria-hidden="true">ⓘ</span> Higher scores rank first. Equal scores share a priority rank.</p>
+      </aside>
+    </div>
+    <footer class="page-footer"><span>AI Energy Lab <span aria-hidden="true">/</span> Risk Analysis</span><button class="text-button" id="reset-button">↻ Reset state assessment</button></footer>
+  </main>
+
+  <dialog id="guide-dialog" aria-labelledby="guide-title"><div class="dialog-heading"><p class="eyebrow">SCORING GUIDE</p><button class="close-dialog" aria-label="Close scoring guide">×</button></div><h2 id="guide-title">Score each decision factor.</h2><p>For each decision factor, consider your assigned U.S. state and choose likelihood and impact from 1 to 5. The risk score, priority ranking, and heat map update automatically.</p><div class="guide-columns"><section><h3>Likelihood</h3><ol><li><strong>Very low</strong> — Rare or unlikely</li><li><strong>Low</strong> — Possible but not expected</li><li><strong>Moderate</strong> — Reasonably possible</li><li><strong>High</strong> — Likely</li><li><strong>Very high</strong> — Very likely</li></ol></section><section><h3>Impact</h3><ol><li><strong>Minimal</strong> — Small effect on success</li><li><strong>Minor</strong> — Manageable effect</li><li><strong>Moderate</strong> — Meaningful effect</li><li><strong>Major</strong> — Serious effect</li><li><strong>Critical</strong> — Could prevent success</li></ol></section></div><div class="formula-note"><strong>Risk score = Likelihood × Impact</strong><span>The heat map counts scored factors. Priority 1 is the highest score; ties share a rank.</span></div><p class="dialog-footnote">Priority rank is one plus the number of factors with a higher score. For example, two factors tied at rank 1 are followed by rank 3.</p><p class="dialog-footnote">Each visitor works independently. Your entries reset on reload. Use Print / Save PDF to keep all 16 factors for this state assessment, then choose Save as PDF in your browser’s print dialog.</p></dialog>
+  <dialog id="definitions-dialog" aria-labelledby="definitions-title"><div class="dialog-heading"><p class="eyebrow">REFERENCE</p><button class="close-dialog" aria-label="Close factor definitions">×</button></div><h2 id="definitions-title">Decision factors & definitions</h2><p>Four categories. Sixteen factors to consider for your assigned U.S. state.</p><div id="definitions-content"></div></dialog>
+  <dialog id="reset-dialog" class="small-dialog" aria-labelledby="reset-title"><div class="dialog-heading"><p class="eyebrow">START FRESH</p><button class="close-dialog" aria-label="Cancel reset">×</button></div><h2 id="reset-title">Reset the state assessment?</h2><p id="reset-description">This clears the state name and all 16 factors’ scores in this assessment.</p><div class="dialog-actions"><button class="outline-button close-dialog">Keep working</button><button id="confirm-reset" class="primary-button">Reset state assessment</button></div></dialog>
+  <section id="print-report" class="print-report" aria-label="Printable state risk assessment"></section>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <noscript><p class="noscript">Enable JavaScript to use the risk assessment tool.</p></noscript>
+</body>
+</html>
