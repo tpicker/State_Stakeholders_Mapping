@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <meta name="description" content="Rate state stakeholders by influence, interest, and position. Choose three priority stakeholders to generate a network map.">
-  <title>State Stakeholder Priorities &amp; Network Map | AI Readiness</title>
+  <meta name="description" content="Rate all 17 state stakeholders by influence, interest, and position and view their network map for AI readiness.">
+  <title>State Stakeholder Network Map | AI Readiness</title>
   <style>
     :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#183147;background:#f3f6f8;font-synthesis:none;--navy:#07345d;--teal:#006d80;--line:#d8e2e9;--muted:#4b6375;--paper:#fff;--error:#a32b27}
     *{box-sizing:border-box}
@@ -134,33 +134,34 @@
 /* New map view uses the existing app's typeface and color palette. */
 .network-map{scroll-margin-top:20px}
 .network-map h2{outline-offset:5px}
-.network-diagram{display:block;width:100%;height:auto;overflow:visible}
-.network-mobile{display:none}
+.map-scroll{overflow-x:auto;margin:12px 0 18px}
+.network-diagram{display:block;width:100%;min-width:800px;height:auto;overflow:visible}
 .network-spoke{stroke:var(--line);stroke-width:3}
 .network-bubble{fill:#edf4f7;stroke:var(--navy);stroke-width:2}
-.network-rank{font-size:25px;font-weight:750;fill:var(--navy);text-anchor:middle}
+.network-bubble.incomplete{stroke-dasharray:5 4}
+.network-number{font-size:22px;font-weight:750;fill:var(--navy);text-anchor:middle}
 .network-center{fill:#edf6f7;stroke:var(--teal);stroke-width:2}
 .network-center-label{font-size:22px;font-weight:700;fill:var(--navy);text-anchor:middle}
-.network-name{font-size:20px;font-weight:650;fill:var(--navy);text-anchor:middle}
-.network-rating,.network-position{font-size:17px;fill:var(--muted);text-anchor:middle}
+.network-name{font-size:20px;font-weight:650;fill:var(--navy)}
+.network-rating,.network-position{font-size:17px;fill:var(--muted)}
 .network-legend{margin:0 0 18px;color:var(--muted);font-size:.84rem}
 .network-table{min-width:540px}
 .network-table th:first-child{width:auto}
 .network-table tbody th{background:transparent;color:var(--navy);font-size:inherit}
 .network-map .tablewrap:focus-visible{outline-offset:3px}
-.network-empty{padding:20px 0}
-@media(max-width:600px){.network-wide{display:none}.network-mobile{display:block}.network-table{font-size:.82rem}.network-table th,.network-table td{padding:9px 8px}.network-rating,.network-position{font-size:16px}}
+@media(max-width:600px){.network-table{font-size:.82rem}.network-table th,.network-table td{padding:9px 8px}}
 @media print{
   #review{display:none!important}
   .workspace{display:block!important}
-  .sidebar,#assessment-form>.section-heading,#stakeholder-fields,#priority-fields,.form-end,.error-summary{display:none!important}
-  #network-map{display:block!important;break-inside:avoid}
-  .network-wide{display:block!important;max-height:155mm}
-  .network-mobile{display:none!important}
+  .sidebar,#assessment-form>.section-heading,#stakeholder-fields,.form-end,.map-scroll-help{display:none!important}
+  #network-map{display:block!important;break-inside:auto}
+  .map-scroll{overflow:visible;break-inside:avoid;margin:0}
+  .network-diagram{min-width:0;max-height:190mm}
   .network-map h2{font-size:18pt}
   .network-map .support,.network-legend{font-size:9pt;margin-bottom:8px}
   .network-table{min-width:0;font-size:9pt;table-layout:auto}
   .network-table th,.network-table td{padding:6px}
+  .network-map .tablewrap{break-before:page}
   .network-diagram,.network-diagram *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
@@ -170,10 +171,10 @@
   <main class="page">
     <header class="hero">
       <p class="eyebrow">AI readiness · State stakeholder assessment</p>
-      <h1>State Stakeholder Priorities &amp; Network Map</h1>
-      <p class="hero-subtitle">Assess influence, interest, and position. Choose your top three.</p>
+      <h1>State Stakeholder Network Map</h1>
+      <p class="hero-subtitle">Assess influence, interest, and position for all 17 stakeholders.</p>
       <div class="hero-rule" aria-hidden="true"></div>
-      <p class="purpose">After listening to the stakeholder profiles, assess their views in the context of your assigned state’s AI readiness and energy choices. Choose the three priority stakeholders whose opposition or concerns could most affect AI readiness, then view your network map.</p>
+      <p class="purpose">After listening to the stakeholder profiles, assess their views in the context of your assigned state’s AI readiness and energy choices. The network map shows all 17 stakeholders and updates as you add their ratings.</p>
     </header>
     <div class="toolbar">
       <p class="save-state" id="save-status" role="status">Your work stays in this browser.</p>
@@ -185,65 +186,53 @@
     </div>
     <p class="notification" id="notification" role="status" hidden></p>
     <div class="workspace" id="workspace">
-      <aside class="sidebar" aria-label="Assessment progress and priorities">
+      <aside class="sidebar" aria-label="Assessment progress">
         <div class="progress-panel">
           <p class="section-kicker">Your progress</p>
           <div class="progress-rows" aria-live="polite">
             <p><strong id="assessment-progress">0 of 17 assessed</strong>Influence, interest, and position</p>
-            <p><strong id="priority-progress">0 of 3 selected</strong>Three different stakeholders</p>
-            <p id="network-progress">Complete the ratings for your three choices</p>
-          </div>
-          <div class="priority-status-block">
-            <p class="section-kicker">Your top three</p>
-            <ol class="priority-summary" id="priority-summary"></ol>
+            <p id="network-progress">All 17 stakeholders are on the map</p>
           </div>
           <nav class="sidebar-links" aria-label="Assessment sections">
             <a href="#assess-heading">1. Assess stakeholders</a>
-            <a href="#priorities-heading">2. Choose your top three</a>
-            <a href="#network-heading">3. View your network map</a>
+            <a href="#network-heading">2. View your network map</a>
           </nav>
         </div>
-        <p class="sidebar-note">Choose your priorities using the stakeholder profiles and your assigned state’s AI readiness needs.</p>
+        <p class="sidebar-note">Base your ratings on the stakeholder profiles and your assigned state’s AI readiness needs.</p>
       </aside>
       <form id="assessment-form" novalidate>
-        <div class="error-summary" id="validation-summary" role="alert" tabindex="-1" hidden></div>
         <div class="section-heading" id="assess-heading">
           <h2>1. Assess stakeholders</h2>
           <p><strong>Influence: 1–5</strong> — ability to affect AI readiness decisions. <strong>Interest: 1–3</strong> — how directly the stakeholder is affected or concerned. Choose the stakeholder’s position based on the profiles.</p>
-          <p>Review the 17 stakeholders. Complete all three ratings for each stakeholder you choose in your top three. Ratings may repeat.</p>
+          <p>Complete all three ratings for each of the 17 stakeholders. Ratings may repeat. The map marks incomplete ratings as you work.</p>
         </div>
         <div id="stakeholder-fields"></div>
-        <div class="section-heading" id="priorities-heading">
-          <h2>2. Choose your top three priority stakeholders</h2>
-          <p>Select three different stakeholders in priority order. Priority 1 has the greatest potential to affect AI readiness through opposition or concerns. Your choices generate the map below.</p>
-        </div>
-        <div id="priority-fields"></div>
         <div class="form-end">
-          <p>The map needs three different stakeholders, each with influence, interest, and position selected.</p>
+          <p>All 17 stakeholders appear on the map. Your ratings update it automatically.</p>
           <button class="button primary" type="submit" id="view-network">View network map <span aria-hidden="true">→</span></button>
         </div>
         <section class="panel network-map" id="network-map" aria-labelledby="network-heading">
-          <h2 id="network-heading" tabindex="-1">3. Your stakeholder network map</h2>
-          <p class="support">State AI readiness and your three priority stakeholders.</p>
-          <p class="support network-empty" id="network-empty">Select your three priorities and complete their influence, interest, and position ratings to generate the map.</p>
-          <div id="network-result" hidden>
-            <div id="network-diagrams"></div>
-            <p class="network-legend">Bubble size shows influence. Numbers show your priority order. Lines connect each choice to state AI readiness.</p>
-            <div class="tablewrap" tabindex="0" role="region" aria-label="Priority stakeholder ratings, scroll horizontally on a small screen">
-              <table class="network-table"><caption class="sr-only">Your three priority stakeholders and their ratings</caption><thead><tr><th scope="col">Priority</th><th scope="col">Stakeholder</th><th scope="col">Influence</th><th scope="col">Interest</th><th scope="col">Position</th></tr></thead><tbody id="network-table-body"></tbody></table>
+          <h2 id="network-heading" tabindex="-1">2. Your stakeholder network map</h2>
+          <p class="support" id="map-status" aria-live="polite">All 17 stakeholders · 0 of 17 assessed</p>
+          <div id="network-result">
+            <p class="field-help map-scroll-help">On a smaller screen, scroll sideways within the map to see every stakeholder.</p>
+            <div class="map-scroll" tabindex="0" role="region" aria-label="Network map of all 17 stakeholders; scroll horizontally on a small screen"><div id="network-diagrams"></div></div>
+            <p class="network-legend">Bubble size shows influence. Dashed circles mark incomplete ratings. Numbers match the stakeholder list. Lines connect all 17 stakeholders to state AI readiness.</p>
+            <div class="tablewrap" tabindex="0" role="region" aria-label="All 17 stakeholder ratings, scroll horizontally on a small screen">
+              <table class="network-table"><caption class="sr-only">All 17 stakeholders and their ratings</caption><thead><tr><th scope="col">No.</th><th scope="col">Stakeholder</th><th scope="col">Influence</th><th scope="col">Interest</th><th scope="col">Position</th></tr></thead><tbody id="network-table-body"></tbody></table>
             </div>
           </div>
         </section>
       </form>
     </div>
     <footer>
-      <p>Your priorities reflect your judgment after reviewing the stakeholder profiles. Print / Save PDF keeps the final network map and its three stakeholders’ ratings.</p>
+      <p>Your ratings reflect your judgment after reviewing the stakeholder profiles. Print / Save PDF keeps the full network map and all 17 stakeholders’ ratings.</p>
       <p>Drafts stay in this browser when storage is available. Use Reset assessment to clear this app’s draft on a shared device.</p>
     </footer>
   </main>
   <dialog id="reset-dialog" aria-labelledby="reset-title" aria-describedby="reset-description">
     <h2 id="reset-title">Reset stakeholder assessment?</h2>
-    <p id="reset-description">This clears your ratings, priority choices, and this app’s saved draft. Print your map first if you want to keep a copy.</p>
+    <p id="reset-description">This clears all 17 stakeholders’ ratings and this app’s saved draft. Print your map first if you want to keep a copy.</p>
     <div class="dialog-actions"><button type="button" class="button" id="cancel-reset">Cancel</button><button type="button" class="button primary" id="confirm-reset">Reset</button></div>
   </dialog>
   <noscript><p style="padding:24px">Enable JavaScript to rate stakeholders and generate the network map.</p></noscript>
@@ -345,10 +334,10 @@ const StakeholderModel = (() => {
   const isStakeholder = id => stakeholders.some(item => item.id === id);
   const assessed = response => !!response && validRating(response.influence, 5) && validRating(response.interest, 3) && Object.hasOwn(positions, response.position);
   function createDraft() {
-    return {appId, schemaVersion:2, responses:Object.fromEntries(stakeholders.map(item => [item.id, {influence:null, interest:null, position:''}])), priorities:[null,null,null]};
+    return {appId, schemaVersion:3, responses:Object.fromEntries(stakeholders.map(item => [item.id, {influence:null, interest:null, position:''}]))};
   }
   function validateDraft(candidate) {
-    if (!candidate || candidate.appId !== appId || candidate.schemaVersion !== 2) throw new Error('Saved assessment is from another activity or version.');
+    if (!candidate || candidate.appId !== appId || ![2,3].includes(candidate.schemaVersion)) throw new Error('Saved assessment is from another activity or version.');
     const draft = createDraft();
     for (const item of stakeholders) {
       const response = candidate.responses?.[item.id];
@@ -356,39 +345,16 @@ const StakeholderModel = (() => {
       if (!(response.position === '' || Object.hasOwn(positions,response.position))) throw new Error('Invalid saved position.');
       draft.responses[item.id] = {influence:response.influence, interest:response.interest, position:response.position};
     }
-    if (!Array.isArray(candidate.priorities) || candidate.priorities.length !== 3 || !candidate.priorities.every(id => id === null || isStakeholder(id))) throw new Error('Invalid saved priority.');
-    const selected = candidate.priorities.filter(id => id !== null);
-    if (new Set(selected).size !== selected.length) throw new Error('Repeated saved priority.');
-    draft.priorities = [...candidate.priorities];
     return draft;
   }
-  function assignPriority(draft, index, id) {
-    if (!Number.isInteger(index) || index < 0 || index > 2 || !(id === null || isStakeholder(id))) throw new Error('Invalid priority selection.');
-    const conflict = id === null ? -1 : draft.priorities.findIndex((other,i) => i !== index && other === id);
-    if (conflict !== -1) return {priority:conflict + 1};
-    draft.priorities[index] = id;
-    return null;
-  }
   function getStatus(draft) {
-    const selected = draft.priorities.filter(id => isStakeholder(id));
-    const issues = [];
-    draft.priorities.forEach((id,index) => {
-      if (!isStakeholder(id)) {issues.push({target:'priority-select-'+index, message:'Choose a stakeholder for priority '+(index+1)+'.'}); return;}
-      if (draft.priorities.some((other,i) => i !== index && other === id)) {issues.push({target:'priority-select-'+index, message:'Choose a different stakeholder for priority '+(index+1)+'.'}); return;}
-      const response = draft.responses[id];
-      for (const [field,maximum] of [['influence',5],['interest',3],['position',null]]) {
-        if (field === 'position' ? !Object.hasOwn(positions,response?.position) : !validRating(response?.[field],maximum)) {
-          issues.push({target:id+'-'+field, message:stakeholders.find(item => item.id === id).name+': choose '+field+'.'});
-        }
-      }
-    });
-    return {assessed:stakeholders.filter(item => assessed(draft.responses[item.id])).length, selected:new Set(selected).size, ready:issues.length === 0, issues};
+    const count = stakeholders.filter(item => assessed(draft.responses[item.id])).length;
+    return {assessed:count, total:stakeholders.length, ready:count === stakeholders.length};
   }
   function mapData(draft) {
-    if (!getStatus(draft).ready) return [];
-    return draft.priorities.map((id,index) => ({...stakeholders.find(item => item.id === id), ...draft.responses[id], priority:index+1}));
+    return stakeholders.map((item,index) => ({...item, ...draft.responses[item.id], number:index+1, complete:assessed(draft.responses[item.id])}));
   }
-  return Object.freeze({appId, stakeholders, positions, influenceLabels, interestLabels, validRating, isStakeholder, assessed, createDraft, validateDraft, assignPriority, getStatus, mapData});
+  return Object.freeze({appId, stakeholders, positions, influenceLabels, interestLabels, validRating, isStakeholder, assessed, createDraft, validateDraft, getStatus, mapData});
 })();
 </script>
   <script id="stakeholder-app">
@@ -397,13 +363,16 @@ const StakeholderModel = (() => {
   const model = StakeholderModel;
   const $ = id => document.getElementById(id);
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const storageKey = model.appId+':v2';
+  const storageKey = model.appId+':v3';
+  const previousStorageKey = model.appId+':v2';
   let draft = model.createDraft();
-  let validationRequested = false;
   let resetFocus = null;
   try {
-    const saved = window.localStorage.getItem(storageKey);
-    if (saved) draft = model.validateDraft(JSON.parse(saved));
+    const saved = window.localStorage.getItem(storageKey) ?? window.localStorage.getItem(previousStorageKey);
+    if (saved) {
+      draft = model.validateDraft(JSON.parse(saved));
+      window.localStorage.setItem(storageKey,JSON.stringify(draft));
+    }
   } catch {
     $('save-status').textContent = 'Starting a fresh assessment. Use Print / Save PDF to keep your map.';
   }
@@ -423,21 +392,6 @@ const StakeholderModel = (() => {
     $('stakeholder-fields').innerHTML = model.stakeholders.map((item,i) => `<section class="panel stakeholder-card" id="stakeholder-${item.id}" aria-labelledby="${item.id}-heading"><div class="assessment-header"><div class="assessment-title"><h3 id="${item.id}-heading">${i+1}. ${escape(item.name)}</h3><span class="completion" id="${item.id}-completion">Choose three ratings</span></div></div><div class="stakeholder-controls"><div class="field"><label for="${item.id}-influence">Influence <span class="sr-only">for ${escape(item.name)}</span></label><select id="${item.id}-influence" data-stakeholder="${item.id}" data-field="influence">${options(model.influenceLabels)}</select></div><div class="field"><label for="${item.id}-interest">Interest <span class="sr-only">for ${escape(item.name)}</span></label><select id="${item.id}-interest" data-stakeholder="${item.id}" data-field="interest">${options(model.interestLabels)}</select></div><div class="field position-field"><label for="${item.id}-position">Position <span class="sr-only">for ${escape(item.name)}</span></label><select id="${item.id}-position" data-stakeholder="${item.id}" data-field="position"><option value="">Choose a position</option>${Object.entries(model.positions).map(([value,label]) => `<option value="${value}">${escape(label)}</option>`).join('')}</select></div></div></section>`).join('');
     for (const item of model.stakeholders) for (const field of ['influence','interest','position']) $(item.id+'-'+field).value = draft.responses[item.id][field] ?? '';
   }
-  function buildPriorities() {
-    $('priority-fields').innerHTML = Array.from({length:3},(_,i) => `<section class="panel priority-card" id="priority-${i+1}" aria-labelledby="priority-heading-${i}"><h3 class="priority-title" id="priority-heading-${i}">Priority ${i+1}</h3><div class="field"><label for="priority-select-${i}">Stakeholder for priority ${i+1}</label><select id="priority-select-${i}" data-priority="${i}" aria-describedby="priority-note-${i}"></select><p class="selection-help" id="priority-note-${i}"></p></div></section>`).join('');
-  }
-  function syncPriorities() {
-    for (let i=0;i<3;i++) {
-      const select = $('priority-select-'+i);
-      select.innerHTML = '<option value="">Choose / clear stakeholder</option>'+model.stakeholders.map(item => {
-        const used = draft.priorities.some((id,j) => j !== i && id === item.id);
-        return `<option value="${item.id}"${used?' disabled':''}>${escape(item.name)}${used?' (already selected)':''}</option>`;
-      }).join('');
-      select.value = draft.priorities[i] ?? '';
-      const id = draft.priorities[i];
-      $('priority-note-'+i).textContent = !id ? 'Choose a different stakeholder for each priority.' : model.assessed(draft.responses[id]) ? 'Ratings complete.' : 'Add influence, interest, and position for this stakeholder above.';
-    }
-  }
   function wrap(text, maximum) {
     const lines = [];
     for (const word of text.split(' ')) {
@@ -446,88 +400,68 @@ const StakeholderModel = (() => {
     }
     return lines;
   }
-  function diagram(data, mobile) {
-    const width = mobile?420:720, height = mobile?680:600;
-    const center = mobile?[210,300]:[360,285];
-    const anchors = mobile?[[210,75],[105,455],[315,455]]:[[360,75],[140,395],[580,395]];
-    const key = mobile?'mobile':'wide';
+  function diagram(data) {
+    const width = 1000, height = 1320;
+    const center = [500,660];
+    const anchors = data.map((item,i) => i<9?[340,80+i*145]:[660,152.5+(i-9)*145]);
     const lines = anchors.map(([x,y]) => `<line x1="${center[0]}" y1="${center[1]}" x2="${x}" y2="${y}" class="network-spoke"/>`).join('');
     const nodes = data.map((item,i) => {
-      const [x,y] = anchors[i], radius = 23+item.influence*6;
-      const name = wrap(item.name,mobile?15:23);
-      const labelY = y+radius+27;
-      const position = item.position==='unknown'?'Unknown':model.positions[item.position];
-      const text = name.map((line,j) => `<tspan x="${x}" y="${labelY+j*24}">${escape(line)}</tspan>`).join('');
-      return `<g class="network-node" data-node="${item.id}"><title>Priority ${item.priority}: ${escape(item.name)}. Influence ${item.influence} of 5. Interest ${item.interest} of 3. Position: ${escape(model.positions[item.position])}.</title><circle cx="${x}" cy="${y}" r="${radius}" class="network-bubble"/><text x="${x}" y="${y+8}" class="network-rank">${item.priority}</text><rect x="${x-(mobile?102:133)}" y="${labelY-21}" width="${mobile?204:266}" height="${name.length*24+50}" fill="white"/><text class="network-name">${text}</text><text x="${x}" y="${labelY+name.length*24+2}" class="network-rating">Influence ${item.influence}/5 · Interest ${item.interest}/3</text><text x="${x}" y="${labelY+name.length*24+25}" class="network-position">${escape(position)}</text></g>`;
+      const [x,y] = anchors[i];
+      const radius = item.influence===null?23:15+item.influence*5;
+      const name = wrap(item.name,25);
+      const labelX = i<9?275:725, labelY = y-18;
+      const anchor = i<9?'end':'start';
+      const position = item.position==='unknown'?'Unknown':model.positions[item.position] ?? 'Position not rated';
+      const text = name.map((line,j) => `<tspan x="${labelX}" y="${labelY+j*24}">${escape(line)}</tspan>`).join('');
+      const influence = item.influence===null?'—':item.influence+'/5';
+      const interest = item.interest===null?'—':item.interest+'/3';
+      return `<g class="network-node" data-node="${item.id}"><title>${item.number}. ${escape(item.name)}. Influence: ${item.influence===null?'not rated':item.influence+' of 5'}. Interest: ${item.interest===null?'not rated':item.interest+' of 3'}. Position: ${escape(model.positions[item.position] ?? 'not rated')}. ${item.complete?'Ratings complete.':'Ratings incomplete.'}</title><circle cx="${x}" cy="${y}" r="${radius}" class="network-bubble${item.complete?'':' incomplete'}"/><text x="${x}" y="${y+7}" class="network-number">${item.number}</text><text class="network-name" text-anchor="${anchor}">${text}</text><text x="${labelX}" y="${labelY+name.length*24+2}" class="network-rating" text-anchor="${anchor}">Influence ${influence} · Interest ${interest}</text><text x="${labelX}" y="${labelY+name.length*24+25}" class="network-position" text-anchor="${anchor}">${escape(position)}</text></g>`;
     }).join('');
-    return `<svg class="network-diagram network-${key}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="network-title-${key} network-desc-${key}" xmlns="http://www.w3.org/2000/svg"><title id="network-title-${key}">Your three priority stakeholders for state AI readiness</title><desc id="network-desc-${key}">Bubble size shows influence. The three selected stakeholders connect to state AI readiness. Full ratings are listed in the table below.</desc>${lines}<ellipse cx="${center[0]}" cy="${center[1]}" rx="89" ry="52" class="network-center"/><text x="${center[0]}" y="${center[1]-5}" class="network-center-label">State AI</text><text x="${center[0]}" y="${center[1]+21}" class="network-center-label">readiness</text>${nodes}</svg>`;
+    return `<svg class="network-diagram" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="network-title network-desc" xmlns="http://www.w3.org/2000/svg"><title id="network-title">All 17 stakeholders for state AI readiness</title><desc id="network-desc">Bubble size shows influence. Dashed circles mark incomplete ratings. Numbers identify stakeholders in the assessment list. All 17 connect to state AI readiness. Full ratings are listed in the table below.</desc>${lines}<ellipse cx="${center[0]}" cy="${center[1]}" rx="89" ry="52" class="network-center"/><text x="${center[0]}" y="${center[1]-5}" class="network-center-label">State AI</text><text x="${center[0]}" y="${center[1]+21}" class="network-center-label">readiness</text>${nodes}</svg>`;
   }
   function renderMap(status) {
-    $('network-empty').hidden = status.ready;
-    $('network-result').hidden = !status.ready;
-    if (!status.ready) {$('network-diagrams').replaceChildren(); $('network-table-body').replaceChildren(); return;}
     const data = model.mapData(draft);
-    $('network-diagrams').innerHTML = diagram(data,false)+diagram(data,true);
-    $('network-table-body').innerHTML = data.map(item => `<tr><th scope="row">${item.priority}</th><td>${escape(item.name)}</td><td>${item.influence}/5</td><td>${item.interest}/3</td><td>${escape(model.positions[item.position])}</td></tr>`).join('');
-  }
-  function renderValidation(status) {
-    const summary = $('validation-summary');
-    summary.hidden = !validationRequested || status.ready;
-    for (const control of document.querySelectorAll('select')) control.removeAttribute('aria-invalid');
-    if (summary.hidden) {summary.replaceChildren(); return;}
-    summary.innerHTML = '<h2>Finish your three priority selections</h2><ul>'+status.issues.map(issue => `<li><a href="#${issue.target}">${escape(issue.message)}</a></li>`).join('')+'</ul>';
-    for (const issue of status.issues) $(issue.target).setAttribute('aria-invalid','true');
+    $('map-status').textContent = 'All 17 stakeholders · '+status.assessed+' of 17 assessed'+(status.ready?' · Complete':' · Ratings in progress');
+    $('network-diagrams').innerHTML = diagram(data);
+    $('network-table-body').innerHTML = data.map(item => `<tr><th scope="row">${item.number}</th><td>${escape(item.name)}</td><td>${item.influence===null?'—':item.influence+'/5'}</td><td>${item.interest===null?'—':item.interest+'/3'}</td><td>${escape(model.positions[item.position] ?? 'Not rated')}</td></tr>`).join('');
   }
   function update() {
     const status = model.getStatus(draft);
     $('assessment-progress').textContent = status.assessed+' of '+model.stakeholders.length+' assessed';
-    $('priority-progress').textContent = status.selected+' of 3 selected';
-    $('network-progress').textContent = status.ready?'Network map ready':'Complete the ratings for your three choices';
-    $('priority-summary').innerHTML = draft.priorities.map(id => '<li>'+escape(model.stakeholders.find(item => item.id === id)?.name ?? 'Not selected')+'</li>').join('');
+    $('network-progress').textContent = status.ready?'All 17 assessments complete':'All 17 stakeholders are on the map';
     for (const item of model.stakeholders) {
       const complete = model.assessed(draft.responses[item.id]);
       $(item.id+'-completion').textContent = complete?'Ratings complete':'Choose influence, interest, and position';
       $(item.id+'-completion').className = complete?'completion complete':'completion';
     }
-    syncPriorities(); renderMap(status); renderValidation(status);
+    renderMap(status);
   }
   function focusMap() {
-    validationRequested = true;
     update();
-    const status = model.getStatus(draft);
-    const target = status.ready?$('network-heading'):$('validation-summary');
+    const target = $('network-heading');
     target.focus();
     target.scrollIntoView({behavior:'auto',block:'start'});
-    return status.ready;
   }
 
-  buildAssessments(); buildPriorities(); update();
+  buildAssessments(); update();
   $('assessment-form').addEventListener('change', event => {
-    const {stakeholder,field,priority} = event.target.dataset;
+    const {stakeholder,field} = event.target.dataset;
     if (stakeholder && model.isStakeholder(stakeholder) && ['influence','interest','position'].includes(field)) {
       const value = event.target.value;
       draft.responses[stakeholder][field] = field==='position' ? (Object.hasOwn(model.positions,value)?value:'') : (value===''?null:model.validRating(Number(value),field==='influence'?5:3)?Number(value):null);
-    } else if (priority !== undefined) {
-      const id = event.target.value || null;
-      const conflict = model.assignPriority(draft,Number(priority),id);
-      if (conflict) {
-        $('notification').textContent = 'This stakeholder is already selected for priority '+conflict.priority+'. Choose a different stakeholder.';
-        $('notification').hidden = false;
-        syncPriorities(); return;
-      }
     } else return;
     $('notification').hidden = true;
     update(); save();
   });
   $('assessment-form').addEventListener('submit', event => {event.preventDefault(); focusMap();});
-  $('print-assessment').addEventListener('click', () => {if (focusMap()) window.print();});
+  $('print-assessment').addEventListener('click', () => {update(); window.print();});
   window.addEventListener('beforeprint', () => update());
   $('reset-assessment').addEventListener('click', () => {resetFocus=document.activeElement; $('reset-dialog').showModal(); $('cancel-reset').focus();});
   $('cancel-reset').addEventListener('click', () => {$('reset-dialog').close(); resetFocus?.focus();});
   $('reset-dialog').addEventListener('close', () => resetFocus?.focus());
   $('confirm-reset').addEventListener('click', () => {
-    draft = model.createDraft(); validationRequested=false;
-    try {window.localStorage.removeItem(storageKey); $('save-status').textContent='Assessment reset. Your work stays in this browser.';} catch {$('save-status').textContent='Assessment reset. Browser saving is unavailable.';}
+    draft = model.createDraft();
+    try {window.localStorage.removeItem(storageKey); window.localStorage.removeItem(previousStorageKey); $('save-status').textContent='Assessment reset. Your work stays in this browser.';} catch {$('save-status').textContent='Assessment reset. Browser saving is unavailable.';}
     buildAssessments(); update();
     $('notification').hidden=true;
     $('reset-dialog').close();
