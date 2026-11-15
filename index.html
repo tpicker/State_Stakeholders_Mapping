@@ -138,7 +138,7 @@
 .network-diagram{display:block;width:100%;min-width:800px;height:auto;overflow:visible}
 .network-spoke{stroke:var(--line);stroke-width:3}
 .network-bubble{fill:#edf4f7;stroke:var(--navy);stroke-width:2}
-.network-bubble.incomplete{stroke-dasharray:5 4}
+.network-bubble.incomplete{stroke-dasharray:5 4}.network-scale{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.network-scale span{padding:7px 11px;border-radius:8px;font-weight:700;font-size:.84rem}.scale-yellow{background:#facc15;color:#302400}.scale-orange{background:#f97316;color:#271000}.scale-red{background:#dc2626;color:#fff}
 .network-number{font-size:22px;font-weight:750;fill:var(--navy);text-anchor:middle}
 .network-center{fill:#edf6f7;stroke:var(--teal);stroke-width:2}
 .network-center-label{font-size:22px;font-weight:700;fill:var(--navy);text-anchor:middle}
@@ -171,13 +171,13 @@
   <main class="page">
     <header class="hero">
       <p class="eyebrow">AI readiness · State stakeholder assessment</p>
-      <h1>State Stakeholder Network Map</h1>
+      <h1>State Stakeholder Network Analysis Map on Preventing AI Readiness</h1>
       <p class="hero-subtitle">Assess influence, interest, and position for all 17 stakeholders.</p>
       <div class="hero-rule" aria-hidden="true"></div>
       <p class="purpose">After listening to the stakeholder profiles, assess their views in the context of your assigned state’s AI readiness and energy choices. The network map shows all 17 stakeholders and updates as you add their ratings.</p>
     </header>
     <div class="toolbar">
-      <p class="save-state" id="save-status" role="status">Your work stays in this browser.</p>
+      <p class="save-state" id="save-status" role="status"></p>
       <div class="action-group">
         <a class="button expo-link" href="https://www.thinglink.com/scene/2172701698718434148" target="_blank" rel="noopener noreferrer">Explore state stakeholder profiles <span aria-hidden="true">↗</span><span class="sr-only"> (opens a new tab)</span></a>
         <button class="button" type="button" id="reset-assessment"><span aria-hidden="true">↺</span> Reset assessment</button>
@@ -213,13 +213,13 @@
         </div>
         <section class="panel network-map" id="network-map" aria-labelledby="network-heading">
           <h2 id="network-heading" tabindex="-1">2. Your stakeholder network map</h2>
-          <p class="support" id="map-status" aria-live="polite">All 17 stakeholders · 0 of 17 assessed</p>
+          <p class="network-scale"><span class="scale-yellow">Yellow · 0–20 · Low concern</span><span class="scale-orange">Orange · 21–40 · Medium concern</span><span class="scale-red">Red · 41–60 · High concern</span></p><p class="support" id="map-status" aria-live="polite">All 17 stakeholders · 0 of 17 assessed</p>
           <div id="network-result">
             <p class="field-help map-scroll-help">On a smaller screen, scroll sideways within the map to see every stakeholder.</p>
             <div class="map-scroll" tabindex="0" role="region" aria-label="Network map of all 17 stakeholders; scroll horizontally on a small screen"><div id="network-diagrams"></div></div>
-            <p class="network-legend">The higher a stakeholder’s influence rating (1–5), the larger their bubble. Interest and position are shown in the labels. Dashed circles mean some ratings are still missing. Numbers match the stakeholder list. Lines connect all 17 stakeholders to state AI readiness.</p>
+            <p class="network-legend">Each Node shows the score = Influence × Interest × Position. Yellow: 0–20 (low concern); Orange: 21–40 (medium concern); Red: 41–60 (high concern). Dashed Nodes have incomplete ratings. Lines connect all 17 stakeholders to state AI readiness.</p>
             <div class="tablewrap" tabindex="0" role="region" aria-label="All 17 stakeholder ratings, scroll horizontally on a small screen">
-              <table class="network-table"><caption class="sr-only">All 17 stakeholders and their ratings</caption><thead><tr><th scope="col">No.</th><th scope="col">Stakeholder</th><th scope="col">Influence</th><th scope="col">Interest</th><th scope="col">Position</th></tr></thead><tbody id="network-table-body"></tbody></table>
+              <table class="network-table"><caption class="sr-only">All 17 stakeholders and their ratings</caption><thead><tr><th scope="col">No.</th><th scope="col">Stakeholder</th><th scope="col">Influence</th><th scope="col">Interest</th><th scope="col">Position</th><th scope="col">Score</th></tr></thead><tbody id="network-table-body"></tbody></table>
             </div>
           </div>
         </section>
@@ -323,11 +323,11 @@ const StakeholderModel = (() => {
   },
   {
     "id": "utilities",
-    "name": "Elec Utilities Representative",
+    "name": "Electric Utilities Representative",
     "shortName": "Electric utilities"
   }
 ].map(item => Object.freeze(item)));
-  const positions = Object.freeze({supportive:'Supportive', conditional:'Conditional support', concerned:'Concerned', opposed:'Opposed', unknown:'Unknown / insufficient evidence'});
+  const positions = Object.freeze({supportive:'1 — Support', conditional:'2 — Conditional support', concerned:'3 — Concerned', opposed:'4 — Opposed'});
   const influenceLabels = Object.freeze(['Very low', 'Low', 'Moderate', 'High', 'Very high']);
   const interestLabels = Object.freeze(['Low', 'Moderate', 'High']);
   const validRating = (value, maximum) => Number.isInteger(value) && value >= 1 && value <= maximum;
@@ -342,8 +342,8 @@ const StakeholderModel = (() => {
     for (const item of stakeholders) {
       const response = candidate.responses?.[item.id];
       if (!response || !(response.influence === null || validRating(response.influence,5)) || !(response.interest === null || validRating(response.interest,3))) throw new Error('Invalid saved rating.');
-      if (!(response.position === '' || Object.hasOwn(positions,response.position))) throw new Error('Invalid saved position.');
-      draft.responses[item.id] = {influence:response.influence, interest:response.interest, position:response.position};
+      if (!(response.position === '' || response.position === 'unknown' || Object.hasOwn(positions,response.position))) throw new Error('Invalid saved position.');
+      draft.responses[item.id] = {influence:response.influence, interest:response.interest, position:response.position === 'unknown' ? '' : response.position};
     }
     return draft;
   }
@@ -411,19 +411,22 @@ const StakeholderModel = (() => {
       const name = wrap(item.name,25);
       const labelX = i<9?275:725, labelY = y-18;
       const anchor = i<9?'end':'start';
-      const position = item.position==='unknown'?'Unknown':model.positions[item.position] ?? 'Position not rated';
+      const position = model.positions[item.position] ?? 'Position not rated';
+      const positionScore = {supportive:1,conditional:2,concerned:3,opposed:4}[item.position] ?? 0;
+      const score = item.complete ? item.influence * item.interest * positionScore : null;
+      const nodeFill = score===null ? '#edf4f7' : score<=20 ? '#facc15' : score<=40 ? '#f97316' : '#dc2626';
       const text = name.map((line,j) => `<tspan x="${labelX}" y="${labelY+j*24}">${escape(line)}</tspan>`).join('');
       const influence = item.influence===null?'—':item.influence+'/5';
       const interest = item.interest===null?'—':item.interest+'/3';
-      return `<g class="network-node" data-node="${item.id}"><title>${item.number}. ${escape(item.name)}. Influence: ${item.influence===null?'not rated':item.influence+' of 5'}. Interest: ${item.interest===null?'not rated':item.interest+' of 3'}. Position: ${escape(model.positions[item.position] ?? 'not rated')}. ${item.complete?'Ratings complete.':'Ratings incomplete.'}</title><circle cx="${x}" cy="${y}" r="${radius}" class="network-bubble${item.complete?'':' incomplete'}"/><text x="${x}" y="${y+7}" class="network-number">${item.number}</text><text class="network-name" text-anchor="${anchor}">${text}</text><text x="${labelX}" y="${labelY+name.length*24+2}" class="network-rating" text-anchor="${anchor}">Influence ${influence} · Interest ${interest}</text><text x="${labelX}" y="${labelY+name.length*24+25}" class="network-position" text-anchor="${anchor}">${escape(position)}</text></g>`;
+      return `<g class="network-node" data-node="${item.id}"><title>${item.number}. ${escape(item.name)}. Influence: ${item.influence===null?'not rated':item.influence+' of 5'}. Interest: ${item.interest===null?'not rated':item.interest+' of 3'}. Score: ${score===null?'not rated':score+' of 60'}. Position: ${escape(model.positions[item.position] ?? 'not rated')}. ${item.complete?'Ratings complete.':'Ratings incomplete.'}</title><circle cx="${x}" cy="${y}" r="${radius}" class="network-bubble${item.complete?'':' incomplete'}" style="fill:${nodeFill}"/><text x="${x}" y="${y+7}" class="network-number" style="fill:${score!==null&&score>40?'#fff':'#17324a'}">${score===null?'—':score}</text><text class="network-name" text-anchor="${anchor}">${text}</text><text x="${labelX}" y="${labelY+name.length*24+2}" class="network-rating" text-anchor="${anchor}">Influence ${influence} · Interest ${interest}</text><text x="${labelX}" y="${labelY+name.length*24+25}" class="network-position" text-anchor="${anchor}">${escape(position)}</text></g>`;
     }).join('');
-    return `<svg class="network-diagram" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="network-title network-desc" xmlns="http://www.w3.org/2000/svg"><title id="network-title">All 17 stakeholders for state AI readiness</title><desc id="network-desc">The higher a stakeholder’s influence rating from 1 to 5, the larger their bubble. Interest and position are shown in the labels. Dashed circles mean some ratings are still missing. Numbers identify stakeholders in the assessment list. All 17 connect to state AI readiness. Full ratings are listed in the table below.</desc>${lines}<ellipse cx="${center[0]}" cy="${center[1]}" rx="89" ry="52" class="network-center"/><text x="${center[0]}" y="${center[1]-5}" class="network-center-label">State AI</text><text x="${center[0]}" y="${center[1]+21}" class="network-center-label">readiness</text>${nodes}</svg>`;
+    return `<svg class="network-diagram" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="network-title network-desc" xmlns="http://www.w3.org/2000/svg"><title id="network-title">All 17 stakeholders for state AI readiness</title><desc id="network-desc">Each Node displays Influence multiplied by Interest multiplied by Position (1 through 4). Yellow is 0 to 20, orange 21 to 40, and red 41 to 60. Dashed Nodes have incomplete ratings. All 17 connect to state AI readiness. Full ratings are listed in the table below.</desc>${lines}<ellipse cx="${center[0]}" cy="${center[1]}" rx="89" ry="52" class="network-center"/><text x="${center[0]}" y="${center[1]-5}" class="network-center-label">State AI</text><text x="${center[0]}" y="${center[1]+21}" class="network-center-label">readiness</text>${nodes}</svg>`;
   }
   function renderMap(status) {
     const data = model.mapData(draft);
     $('map-status').textContent = 'All 17 stakeholders · '+status.assessed+' of 17 assessed'+(status.ready?' · Complete':' · Ratings in progress');
     $('network-diagrams').innerHTML = diagram(data);
-    $('network-table-body').innerHTML = data.map(item => `<tr><th scope="row">${item.number}</th><td>${escape(item.name)}</td><td>${item.influence===null?'—':item.influence+'/5'}</td><td>${item.interest===null?'—':item.interest+'/3'}</td><td>${escape(model.positions[item.position] ?? 'Not rated')}</td></tr>`).join('');
+    $('network-table-body').innerHTML = data.map(item => `<tr><th scope="row">${item.number}</th><td>${escape(item.name)}</td><td>${item.influence===null?'—':item.influence+'/5'}</td><td>${item.interest===null?'—':item.interest+'/3'}</td><td>${escape(model.positions[item.position] ?? 'Not rated')}</td><td>${item.complete ? item.influence*item.interest*({supportive:1,conditional:2,concerned:3,opposed:4}[item.position]) : '—'}</td></tr>`).join('');
   }
   function update() {
     const status = model.getStatus(draft);
@@ -461,7 +464,7 @@ const StakeholderModel = (() => {
   $('reset-dialog').addEventListener('close', () => resetFocus?.focus());
   $('confirm-reset').addEventListener('click', () => {
     draft = model.createDraft();
-    try {window.localStorage.removeItem(storageKey); window.localStorage.removeItem(previousStorageKey); $('save-status').textContent='Assessment reset. Your work stays in this browser.';} catch {$('save-status').textContent='Assessment reset. Browser saving is unavailable.';}
+    try {window.localStorage.removeItem(storageKey); window.localStorage.removeItem(previousStorageKey); $('save-status').textContent='Assessment reset.';} catch {$('save-status').textContent='Assessment reset. Browser saving is unavailable.';}
     buildAssessments(); update();
     $('notification').hidden=true;
     $('reset-dialog').close();
