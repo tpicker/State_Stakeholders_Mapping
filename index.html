@@ -174,7 +174,7 @@
 .progress-rows{display:flex;flex-wrap:wrap;gap:12px 24px;margin:0}
 .sidebar-links{display:flex;flex-wrap:wrap;gap:10px 20px;margin:0 0 0 auto}
 .sidebar-note{margin:10px 0 0}
-#assessment-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:26px;align-items:start}
+#assessment-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;align-items:start}
 .ratings-column{min-width:0}
 .ratings-column>.section-heading{margin-top:0}
 .network-map{min-width:0;position:sticky;top:18px;max-height:calc(100vh - 36px);max-height:calc(100dvh - 36px);overflow:auto;scrollbar-gutter:stable}
@@ -270,9 +270,6 @@
             <p class="field-help map-scroll-help">On a smaller screen, scroll sideways within the map to see every stakeholder.</p>
             <div class="map-scroll" tabindex="0" role="region" aria-label="Network map of all 17 stakeholders; scroll horizontally on a small screen"><div id="network-diagrams"></div></div>
             <p class="network-legend">Each Node shows the score = Influence × Interest × Position. Yellow: 0–20 (low concern); Orange: 21–40 (medium concern); Red: 41–60 (high concern). Dashed Nodes have incomplete ratings. Lines connect all 17 stakeholders to state AI readiness.</p>
-            <div class="tablewrap" tabindex="0" role="region" aria-label="All 17 stakeholder ratings, scroll horizontally on a small screen">
-              <table class="network-table"><caption class="sr-only">All 17 stakeholders and their ratings</caption><thead><tr><th scope="col">No.</th><th scope="col">Stakeholder</th><th scope="col">Influence</th><th scope="col">Interest</th><th scope="col">Position</th><th scope="col">Score</th></tr></thead><tbody id="network-table-body"></tbody></table>
-            </div>
           </div>
         </section>
       </form>
@@ -281,7 +278,7 @@
     <div class="summary-actions"><button class="button primary" type="button" id="copy-summary-bottom" aria-describedby="copy-help">Copy summary of responses</button><p id="copy-help">Copy every stakeholder’s ratings and map results to paste into ThingLink.</p></div>
     <div class="copy-feedback"><p id="copy-status" role="status" aria-live="polite"></p><div class="copy-fallback" id="copy-fallback" hidden><label for="copy-text">Summary of responses — manual copy</label><p id="copy-instructions">Press Ctrl+C or Command+C, or use your device’s Copy command.</p><textarea id="copy-text" rows="10" readonly aria-describedby="copy-instructions"></textarea></div></div>
     <footer>
-      <p>Your ratings reflect your judgment after reviewing the stakeholder profiles. Print / Save PDF keeps the full network map and all 17 stakeholders’ ratings.</p>
+      <p>Your ratings reflect your judgment after reviewing the stakeholder profiles. Print / Save PDF keeps the network map. Copy summary keeps all stakeholder ratings.</p>
       <p>Drafts stay in this browser when storage is available. Use Reset assessment to clear this app’s draft on a shared device.</p>
     </footer>
   </main>
@@ -475,13 +472,12 @@ const StakeholderModel = (() => {
       const interest = item.interest===null?'—':item.interest+'/3';
       return `<g class="network-node" data-node="${item.id}"><title>${item.number}. ${escape(item.name)}. Influence: ${item.influence===null?'not rated':item.influence+' of 5'}. Interest: ${item.interest===null?'not rated':item.interest+' of 3'}. Score: ${score===null?'not rated':score+' of 60'}. Position: ${escape(model.positions[item.position] ?? 'not rated')}. ${item.complete?'Ratings complete.':'Ratings incomplete.'}</title><circle cx="${x}" cy="${y}" r="${radius}" class="network-bubble${item.complete?'':' incomplete'}" style="fill:${nodeFill}"/><text x="${x}" y="${y+7}" class="network-number" style="fill:${score!==null&&score>40?'#fff':'#17324a'}">${score===null?'—':score}</text><text class="network-name" text-anchor="${anchor}">${text}</text><text x="${labelX}" y="${labelY+name.length*24+2}" class="network-rating" text-anchor="${anchor}">Influence ${influence} · Interest ${interest}</text><text x="${labelX}" y="${labelY+name.length*24+25}" class="network-position" text-anchor="${anchor}">${escape(position)}</text></g>`;
     }).join('');
-    return `<svg class="network-diagram" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="network-title network-desc" xmlns="http://www.w3.org/2000/svg"><title id="network-title">All 17 stakeholders for state AI readiness</title><desc id="network-desc">Each Node displays Influence multiplied by Interest multiplied by Position (1 through 4). Yellow is 0 to 20, orange 21 to 40, and red 41 to 60. Dashed Nodes have incomplete ratings. All 17 connect to state AI readiness. Full ratings are listed in the table below.</desc>${lines}<ellipse cx="${center[0]}" cy="${center[1]}" rx="89" ry="52" class="network-center"/><text x="${center[0]}" y="${center[1]-5}" class="network-center-label">State AI</text><text x="${center[0]}" y="${center[1]+21}" class="network-center-label">readiness</text>${nodes}</svg>`;
+    return `<svg class="network-diagram" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="network-title network-desc" xmlns="http://www.w3.org/2000/svg"><title id="network-title">All 17 stakeholders for state AI readiness</title><desc id="network-desc">Each Node displays Influence multiplied by Interest multiplied by Position (1 through 4). Yellow is 0 to 20, orange 21 to 40, and red 41 to 60. Dashed Nodes have incomplete ratings. All 17 connect to state AI readiness. Full ratings are available in Copy summary of responses.</desc>${lines}<ellipse cx="${center[0]}" cy="${center[1]}" rx="89" ry="52" class="network-center"/><text x="${center[0]}" y="${center[1]-5}" class="network-center-label">State AI</text><text x="${center[0]}" y="${center[1]+21}" class="network-center-label">readiness</text>${nodes}</svg>`;
   }
   function renderMap(status) {
     const data = model.mapData(draft);
     $('map-status').textContent = 'All 17 stakeholders · '+status.assessed+' of 17 assessed'+(status.ready?' · Complete':' · Ratings in progress');
     $('network-diagrams').innerHTML = diagram(data);
-    $('network-table-body').innerHTML = data.map(item => `<tr><th scope="row">${item.number}</th><td>${escape(item.name)}</td><td>${item.influence===null?'—':item.influence+'/5'}</td><td>${item.interest===null?'—':item.interest+'/3'}</td><td>${escape(model.positions[item.position] ?? 'Not rated')}</td><td>${item.complete ? item.influence*item.interest*({supportive:1,conditional:2,concerned:3,opposed:4}[item.position]) : '—'}</td></tr>`).join('');
   }
   function update() {
     clearSummaryCopy();
