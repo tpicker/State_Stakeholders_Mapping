@@ -165,6 +165,56 @@
   .network-diagram,.network-diagram *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
+<style id="stakeholder-layout">/* Shared layout update; retain the published typeface and color palette. */
+.page{width:90%;max-width:none;padding-left:0;padding-right:0}
+.workspace{display:block}
+.sidebar{position:static;margin-bottom:22px}
+.progress-panel{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center}
+.progress-panel .section-kicker{margin:0}
+.progress-rows{display:flex;flex-wrap:wrap;gap:12px 24px;margin:0}
+.sidebar-links{display:flex;flex-wrap:wrap;gap:10px 20px;margin:0 0 0 auto}
+.sidebar-note{margin:10px 0 0}
+#assessment-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:26px;align-items:start}
+.ratings-column{min-width:0}
+.ratings-column>.section-heading{margin-top:0}
+.network-map{min-width:0;position:sticky;top:18px;max-height:calc(100vh - 36px);max-height:calc(100dvh - 36px);overflow:auto;scrollbar-gutter:stable}
+.network-map .map-scroll{overflow-x:visible}
+.network-map .network-diagram{min-width:0}
+.network-map .network-name{font-size:22px}
+.network-map .tablewrap{max-width:100%}
+.stakeholder-controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+.stakeholder-controls .position-field{grid-column:1/-1}
+.summary-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:24px}
+.summary-actions p{margin:0;color:var(--muted);font-size:.87rem}
+.copy-feedback{color:var(--muted);font-size:.87rem;line-height:1.6}
+.copy-feedback>p:empty{display:none}
+.copy-fallback{padding:18px;margin:16px 0;background:#fff;border:1px solid var(--line);border-radius:10px}
+.copy-fallback label{display:block;font-weight:700;color:var(--navy)}
+.copy-fallback textarea{display:block;width:100%;min-height:180px;margin-top:10px;resize:vertical;font:inherit}
+@media(max-width:1050px){
+ #assessment-form{grid-template-columns:1fr}
+ .network-map{position:static;max-height:none;overflow:visible}
+ .network-map .map-scroll{overflow-x:auto}
+ .network-map .network-diagram{min-width:800px}
+ .progress-panel{display:flex}
+ .sidebar-links{margin-left:0}
+}
+@media(max-width:600px){
+ .page{padding-top:16px;padding-bottom:28px}
+ .action-group{width:100%;gap:8px;flex-wrap:wrap}
+ .action-group .button{flex:1 1 auto}
+ .progress-rows{display:grid;gap:6px}
+ .summary-actions .button{width:100%}
+}
+@media print{
+ .page{width:100%;padding:0}
+ .summary-actions,.copy-feedback,.ratings-column{display:none!important}
+ #assessment-form{display:block!important}
+ .network-map{position:static;top:auto;max-height:none;overflow:visible;scrollbar-gutter:auto}
+ .network-map .map-scroll{overflow:visible}
+ .network-map .network-diagram{min-width:0}
+}
+</style>
 </head>
 <body>
   <a class="skip-link" href="#assessment-form">Skip to stakeholder assessment</a>
@@ -179,7 +229,7 @@
     <div class="toolbar">
       <p class="save-state" id="save-status" role="status"></p>
       <div class="action-group">
-        <a class="button expo-link" href="https://www.thinglink.com/scene/2172701698718434148" target="_blank" rel="noopener noreferrer">Explore state stakeholder profiles <span aria-hidden="true">↗</span><span class="sr-only"> (opens a new tab)</span></a>
+        <button class="button" type="button" id="copy-summary" aria-describedby="copy-help">Copy summary of responses</button>
         <button class="button" type="button" id="reset-assessment"><span aria-hidden="true">↺</span> Reset assessment</button>
         <button class="button primary" type="button" id="print-assessment">Print / Save PDF</button>
       </div>
@@ -201,6 +251,7 @@
         <p class="sidebar-note">Base your ratings on the stakeholder profiles and your assigned state’s AI readiness needs.</p>
       </aside>
       <form id="assessment-form" novalidate>
+        <div class="ratings-column">
         <div class="section-heading" id="assess-heading">
           <h2>1. Assess stakeholders</h2>
           <p><strong>Influence: 1–5</strong> — ability to affect AI readiness decisions. <strong>Interest: 1–3</strong> — how directly the stakeholder is affected or concerned. Choose the stakeholder’s position based on the profiles.</p>
@@ -211,7 +262,8 @@
           <p>All 17 stakeholders appear on the map. Your ratings update it automatically.</p>
           <button class="button primary" type="submit" id="view-network">View network map <span aria-hidden="true">→</span></button>
         </div>
-        <section class="panel network-map" id="network-map" aria-labelledby="network-heading">
+        </div>
+        <section class="panel network-map" id="network-map" tabindex="0" aria-labelledby="network-heading">
           <h2 id="network-heading" tabindex="-1">2. Your stakeholder network map</h2>
           <p class="network-scale"><span class="scale-yellow">Yellow · 0–20 · Low concern</span><span class="scale-orange">Orange · 21–40 · Medium concern</span><span class="scale-red">Red · 41–60 · High concern</span></p><p class="support" id="map-status" aria-live="polite">All 17 stakeholders · 0 of 17 assessed</p>
           <div id="network-result">
@@ -225,6 +277,9 @@
         </section>
       </form>
     </div>
+
+    <div class="summary-actions"><button class="button primary" type="button" id="copy-summary-bottom" aria-describedby="copy-help">Copy summary of responses</button><p id="copy-help">Copy every stakeholder’s ratings and map results to paste into ThingLink.</p></div>
+    <div class="copy-feedback"><p id="copy-status" role="status" aria-live="polite"></p><div class="copy-fallback" id="copy-fallback" hidden><label for="copy-text">Summary of responses — manual copy</label><p id="copy-instructions">Press Ctrl+C or Command+C, or use your device’s Copy command.</p><textarea id="copy-text" rows="10" readonly aria-describedby="copy-instructions"></textarea></div></div>
     <footer>
       <p>Your ratings reflect your judgment after reviewing the stakeholder profiles. Print / Save PDF keeps the full network map and all 17 stakeholders’ ratings.</p>
       <p>Drafts stay in this browser when storage is available. Use Reset assessment to clear this app’s draft on a shared device.</p>
@@ -429,6 +484,7 @@ const StakeholderModel = (() => {
     $('network-table-body').innerHTML = data.map(item => `<tr><th scope="row">${item.number}</th><td>${escape(item.name)}</td><td>${item.influence===null?'—':item.influence+'/5'}</td><td>${item.interest===null?'—':item.interest+'/3'}</td><td>${escape(model.positions[item.position] ?? 'Not rated')}</td><td>${item.complete ? item.influence*item.interest*({supportive:1,conditional:2,concerned:3,opposed:4}[item.position]) : '—'}</td></tr>`).join('');
   }
   function update() {
+    clearSummaryCopy();
     const status = model.getStatus(draft);
     $('assessment-progress').textContent = status.assessed+' of '+model.stakeholders.length+' assessed';
     $('network-progress').textContent = status.ready?'All 17 assessments complete':'All 17 stakeholders are on the map';
@@ -445,6 +501,63 @@ const StakeholderModel = (() => {
     target.focus();
     target.scrollIntoView({behavior:'auto',block:'start'});
   }
+
+  const SUMMARY_SCORE_BASED = true;
+  let copyRequest = 0;
+  function clearSummaryCopy() {
+    copyRequest += 1;
+    $('copy-status').textContent = '';
+    $('copy-fallback').hidden = true;
+    $('copy-text').value = '';
+    for (const id of ['copy-summary','copy-summary-bottom']) $(id).textContent = 'Copy summary of responses';
+  }
+  function summaryText() {
+    const status = model.getStatus(draft);
+    const rows = model.mapData(draft);
+    const lines = [document.querySelector('h1').textContent.trim(), 'SUMMARY OF RESPONSES',
+      'Assessment: '+(status.ready?'Complete':'Draft'),
+      'Stakeholders fully assessed: '+status.assessed+' / '+status.total,
+      '', 'ALL STAKEHOLDER RATINGS'];
+    for (const row of rows) {
+      lines.push('', row.number+'. '+row.name,
+        'Influence: '+(row.influence===null?'Not rated':row.influence+' / 5 — '+model.influenceLabels[row.influence-1]),
+        'Interest: '+(row.interest===null?'Not rated':row.interest+' / 3 — '+model.interestLabels[row.interest-1]),
+        'Position: '+(model.positions[row.position]??'Not rated'),
+        'Ratings: '+(row.complete?'Complete':'Incomplete'));
+      if (SUMMARY_SCORE_BASED) {
+        const positionScore = {supportive:1,conditional:2,concerned:3,opposed:4}[row.position];
+        const score = row.complete ? row.influence*row.interest*positionScore : null;
+        lines.push('Concern score: '+(score===null?'Not scored — incomplete':score+' / 60'),
+          'Map color: '+(score===null?'Unrated':score<=20?'Yellow — Low concern':score<=40?'Orange — Medium concern':'Red — High concern'));
+      } else {
+        lines.push('Influence rank: '+(row.rank===null?'Not ranked':row.rank), 'Map group: '+row.bandLabel);
+      }
+    }
+    lines.push('', 'READING THE MAP', 'Larger bubbles indicate greater influence. Dashed outlines indicate incomplete ratings.');
+    if (SUMMARY_SCORE_BASED) lines.push('Concern score = Influence × Interest × Position. Position: Support 1; Conditional support 2; Concerned 3; Opposed 4.',
+      'Yellow: 0–20; Orange: 21–40; Red: 41–60.');
+    else lines.push('Colors rank influence: top three and cutoff ties are green; bottom three and cutoff ties are light red; middle ranks range from yellow to orange.',
+      'Equal influence ratings share a rank. A split green/red bubble belongs to both groups.');
+    return lines.join('\n');
+  }
+  async function copySummary() {
+    clearSummaryCopy();
+    const request = copyRequest, text = summaryText();
+    try {
+      await navigator.clipboard.writeText(text);
+      if (request !== copyRequest) return;
+      $('copy-status').textContent = 'Summary copied. Paste it into ThingLink or your document.';
+      for (const id of ['copy-summary','copy-summary-bottom']) $(id).textContent = 'Summary copied';
+    } catch {
+      if (request !== copyRequest) return;
+      $('copy-text').value = text;
+      $('copy-fallback').hidden = false;
+      $('copy-text').focus(); $('copy-text').select();
+      $('copy-status').textContent = 'Your summary is selected below. Press Ctrl+C or Command+C, or use your device’s Copy command.';
+    }
+  }
+  for (const id of ['copy-summary','copy-summary-bottom']) $(id).addEventListener('click', copySummary);
+  $('copy-text').addEventListener('click', event => event.target.select());
 
   buildAssessments(); update();
   $('assessment-form').addEventListener('change', event => {
